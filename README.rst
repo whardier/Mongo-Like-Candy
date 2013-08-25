@@ -26,4 +26,6 @@ Posts
 
   * `Geospatial MongoDB using Quadtrees and Geohashes <geospatial-mongodb-using-quadtrees-and-geohashes.rst>`_
 
+* Sharding Solutions
 
+  * ...
