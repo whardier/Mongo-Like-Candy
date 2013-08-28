@@ -61,13 +61,25 @@ was using a common variety geohash_ for my location information and it
 was easy to precalculate a series of tests for a query that would 
 start with a specific location and radiate out.
 
-Take the geohash_ ``bdvkkbmvn39b`` which is a point within 
+Take the geohash_ ``bdvkjqwr`` which is a contained within 
 ``Anchorage, Alaska``. A geohash_ is more than a point because it also 
-defines an area, no matter how small, based on a precision factor that 
-relates to the length of the hash.  The hash ``bdv`` is very large 
-compared to the hash ``bdvk`` which is 1/32 of the size.  The above 
-geohash_ ``bdvkkbmvn39b`` defines an area that is 0.0000003 degrees 
-across.
+defines an area, no matter how small, based on a precision factor 
+which is length of the hash.  ``bdvkjqwr`` has a bounding box roughly 
+the size of a house.
+
+..  figure :: http://github.com/whardier/Mongo-Like-Candy/raw/master/images/cascading-multi-clause-queries-map-bdvkjqwr.png
+    :alt: Geohash - bdvkjqwr
+    
+    **bdvkjqwr** is roughly the size of a house
+
+The hash ``bdv`` is very large compared to the hash ``bdvk`` which is 
+1/32 of the size.
+
+..  figure :: http://github.com/whardier/Mongo-Like-Candy/raw/master/images/cascading-multi-clause-queries-map-bdvk.png
+    :alt: Geohash - bdvk
+    
+    **bdvk** does not entirely overlap ``Anchorage, Alaska`` even 
+    though it is roughly the size to do so.
 
 All I needed was to get at some documents *around* a specific point 
 and then grow the query out as results flood in.
