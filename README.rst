@@ -1,9 +1,10 @@
-:Author: Shane R. Spencer <shane@bogomip.com>
-
+================
 Mongo Like Candy
 ================
 
-MongoDB ramblings
+:Author: Shane R. Spencer <shane@bogomip.com>
+
+MongoDB ramblings by a strange man living in a strange place.
 
 Posts
 -----
@@ -17,6 +18,8 @@ Posts
   * `A Few Pages on Pagination, Page 3 <a-few-pages-on-pagination-page-3.rst>`_
 
 * Indexing Tricks
+
+  * `Cascading Multi-Clause Queries <cascading-multi-clause-queries.rst>`_
 
   * `The Three Bears of Indexing: Too Hot, Too Cold, Just Right <the-three-bears-of-indexing-too-hot-too-cold-just-right.rst>`_
 
