@@ -56,48 +56,52 @@ surrounding cities in an order I had determined before making the
 query.
 
 To take advantage of this I knew I would need to feed the query an 
-ordered set of locations which I was prepared for.  In my situation I 
-was using a common variety geohash_ for my location information and it 
-was easy to precalculate a series of tests for a query that would 
-start with a specific location and radiate out.
-
-Take the geohash_ ``bdvkjqwr`` which is a contained within 
-``Anchorage, Alaska``. A geohash_ is more than a point because it also 
-defines an area, no matter how small, based on a precision factor 
-which is length of the hash.  ``bdvkjqwr`` has a bounding box roughly 
-the size of a house.
-
-..  figure :: http://github.com/whardier/Mongo-Like-Candy/raw/master/images/cascading-multi-clause-queries-map-bdvkjqwr.png
-    :alt: Geohash - bdvkjqwr
-    
-    **bdvkjqwr** is roughly the size of a house
-
-The hash ``bdv`` is very large compared to the hash ``bdvk`` which is 
-1/32 of the size.
-
-..  figure :: http://github.com/whardier/Mongo-Like-Candy/raw/master/images/cascading-multi-clause-queries-map-bdvk.png
-    :alt: Geohash - bdvk
-    
-    **bdvk** does not entirely overlap ``Anchorage, Alaska`` even 
-    though it is roughly the size to do so.
-
-All I needed was to get at some documents *around* a specific point 
-and then grow the query out as results flood in.
+ordered set of locations which I could pregenerate or potentially let 
+the user define.
 
 Data
 ====
 
-**FIXME: I HATE THE WAY THE BELOW IS PHRASED**
+This article focuses on using a sample stream of geolocated Twitter_ 
+posts using the `Twitter Streaming API`_.  It may not surprise any of 
+you that the JSON_ output from Twitter_ can be directly imported into 
+MongoDB_ using mongoimport_ and contains valid GeoJSON_ for direct use 
+with the 2dsphere_ special index.
 
-This article focuses less on what crazy data I was processing at the 
-time and instead focuses on using a sample stream of geolocated 
-Twitter_ posts using the `Twitter Streaming API`_.  It may not 
-surprise any of you that the JSON_ output from Twitter_ can be 
-directly imported into MongoDB_ using mongoimport_ and contains valid 
-GeoJSON_ for use with the 2dsphere_ special index.
+Twitter_ posts make an **excellent** data source to use when testing 
+indexing requirements like multi-lingual text searching, geospatial 
+data, multi-key indexes, and works very well when you simply need a 
+lot of very unique data to play with.
 
-Twitter_ posts make an **excellent** source of test data for large 
-databases with lots of special indexing requirements.
+.. topic :: **Example Post** (simplified)
+
+  .. code :: javascript
+        
+        {
+            "_id" : ObjectId("521d3eb8e5dee42bee224700"),
+            "created_at" : "Wed Aug 28 00:02:55 +0000 2013",
+            "text" : "not really sure how to feel about this",
+            "user" : {
+                "screen_name" : "some_dude",
+                "geo_enabled" : true,
+            },
+            "coordinates" : {
+                "type" : "Point",
+                "coordinates" : [
+                    -87.8333797,
+                    41.50161718
+                ]
+            },
+            "place" : {
+                "name" : "Frankfort",
+            }
+        }
+
+
+
+
+
+
 
 ..  code-block :: javascript
 
@@ -161,29 +165,6 @@ through the ``places`` field which focuses on the geographic name of
 the city or state and the ``coordinates`` field that defines where on 
 Earth the post was approximately made.
 
-.. topic :: **Example Post** (simplified)
-
-    .. code :: javascript
-        
-        {
-            "_id" : ObjectId("521d3eb8e5dee42bee224700"),
-            "created_at" : "Wed Aug 28 00:02:55 +0000 2013",
-            "text" : "not really sure how to feel about this",
-            "user" : {
-                "screen_name" : "some_dude",
-                "geo_enabled" : true,
-            },
-            "coordinates" : {
-                "type" : "Point",
-                "coordinates" : [
-                    -87.8333797,
-                    41.50161718
-                ]
-            },
-            "place" : {
-                "name" : "Frankfort",
-            }
-        }
 
 Combining a text command_ with other queries is somewhat difficult and 
 nearly always requires the use of a two-stage query using an interim 
