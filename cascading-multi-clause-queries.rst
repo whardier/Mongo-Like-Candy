@@ -530,7 +530,7 @@ Gotchas
 There are of course a few gotchas with using this solution.
 
 No more cursor.sort_
-~~~~~~~~~~~~~~~~~~~~
+--------------------
 
 Go ahead and try it.  Instead of processing each or_ clause and 
 returning sorted chunks you will instead process the index directly 
@@ -538,7 +538,7 @@ returning sorted chunks you will instead process the index directly
 post-processor.
 
 You have to do more client side code
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+------------------------------------
 
 I couldn't be happier about that.  Making specific use of a very 
 simple database solution (comparitively speaking) is going to 
