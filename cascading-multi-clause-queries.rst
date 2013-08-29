@@ -11,8 +11,6 @@ Cascaded Multi-Clause Queries
 Preface
 =======
 
-** WORK IN PROGRESS **
-
 MongoDB_ definitely encourages developers to think out of the box and 
 create clever query solutions that don't completely rely on the 
 database server to do all the processing. One clever solution I refer 
@@ -527,7 +525,7 @@ Lets pull off the following:
     }).limit(500).explain(verbose = true)
 
 Gotchas
--------
+=======
 
 There are of course a few gotchas with using this solution.
 
@@ -548,6 +546,16 @@ eventually require some pre and post processing by the client if you
 want to do anything that isn't directly supported.  Thankfully 
 MongoDB_ is very **streamy** and processing a cursor in most languages 
 is very simple.
+
+Extra Info
+==========
+
+Also check out `Interim Tables FTW <interim-tables-ftw.rst>`_ to see 
+how the result set for or_ based cascaded multi-clause queries can be 
+stored into an interim table and a secondary query can be done against 
+the data.  Both solutions are a killer combination when it comes to 
+keeping index size down and creating simple and straight forward data 
+sets highly searchable and easily paginated.
 
 ..  _or: http://docs.mongodb.org/manual/reference/operator/or/
 
@@ -571,15 +579,7 @@ is very simple.
 
 ..  _twitter streaming api: https://dev.twitter.com/docs/streaming-apis
 
-..  _text search: http://docs.mongodb.org/manual/core/text-search/
-
-..  _text command: http://docs.mongodb.org/manual/reference/command/text/
-
-..  _objectid: http://docs.mongodb.org/manual/reference/object-id/
-
 ..  _mongodb: http://www.mongodb.org/
-
-..  _aggregate: http://docs.mongodb.org/manual/reference/command/aggregate/
 
 ..  _ttl: http://docs.mongodb.org/manual/tutorial/expire-data/
 
