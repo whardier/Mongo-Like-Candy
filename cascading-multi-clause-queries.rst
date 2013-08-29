@@ -496,11 +496,6 @@ want to do anything that isn't directly supported.  Thankfully
 MongoDB_ is very **streamy** and processing a cursor in most languages 
 is very simple.
 
-References
-==========
-
-.. target-notes::
-
 ..  _or: http://docs.mongodb.org/manual/reference/operator/or/
 
 ..  _2d: http://docs.mongodb.org/manual/core/2d/
