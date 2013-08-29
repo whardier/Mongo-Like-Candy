@@ -540,25 +540,4 @@ References
 
 ..  _hierarchial storage management: http://en.wikipedia.org/wiki/Hierarchical_Storage_Management
 
-..  Geospatial MongoDB using Quadtrees and Geohashes: geospatial-mongodb-using-quadtrees-and-geohashes.rst
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+..  _Geospatial MongoDB using Quadtrees and Geohashes: geospatial-mongodb-using-quadtrees-and-geohashes.rst
