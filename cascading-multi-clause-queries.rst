@@ -455,6 +455,12 @@ The latter query allows us to change ``user.followers_count`` to match
 any limit the user requests.  Perhaps they want to scan the country 
 for any individuals with over 10000 followers.
 
+Keep in mind that when want your or_ operator to be first in a query 
+you should always use SON_ objects to build your query.  This makes 
+sure that the query document is ordered properly when using a 
+programming language where dictionaries have no ordering, like 
+Python_.
+
 Pagination
 ----------
 
@@ -586,3 +592,7 @@ sets highly searchable and easily paginated.
 ..  _geohash: http://en.wikipedia.org/wiki/Geohash
 
 ..  _hierarchial storage management: http://en.wikipedia.org/wiki/Hierarchical_Storage_Management
+
+..  _son: http://api.mongodb.org/python/current/api/bson/son.html
+
+..  _python: http://www.python.org/
