@@ -388,7 +388,7 @@ query would be nice and fast.
         "server" : "buckaroobanzai:27017"
     }
 
-This is right in line with how `hierarchical storage management`_ is 
+This is right in line with how `hierarchial storage management`_ is 
 done.  If we are clever we can isolate low traffic index ranges to 
 less expensive shard servers and use this solution to only hit those 
 servers if the rest of the shards could not completely satisfy the 
