@@ -66,8 +66,8 @@ This article focuses on using a sample stream of geotagged Twitter_
 posts using the `Twitter Streaming API`_.  It may not surprise any of 
 you that the JSON_ output from Twitter_ can be directly imported into 
 MongoDB_ using mongoimport_ and contains valid GeoJSON_ for direct use 
-with the 2dsphere_ special index as well as an array of points that 
-works well with the 2d_ special index.
+with the 2dsphere_ geospatial index as well as an array of points that 
+works well with the 2d_ geospatial index.
 
 Twitter_ posts make an **excellent** data source to use when testing 
 indexing requirements like multi-lingual text searching, geospatial 
@@ -471,7 +471,60 @@ last query got to.
 Geospatial Queries
 ------------------
 
-In my article Geospatial MongoDB using Quadtrees and Geohashes_
+In my article `Geospatial MongoDB using Quadtrees and Geohashes 
+<geospatial-mongodb-using-quadtrees-and-geohashes.rst>`_ I go over 
+using hashes that narrow down on specific locations the longer the 
+hash string becomes which is known as the precision.  Pulling off a 
+query where I look for all points within a specific location is pretty 
+simple and using the or_ operator makes it simple to get a roughly 
+distance sorted result set without using 2d_ or 2dsphere_ geospatial 
+indexes.
+
+Why?  Because 2d_/2dsphere_ indexes cannot be used as shard keys 
+however geohash and quadtree strings can.
+
+Lets pull off the following:
+
+* query a hash the size of a house
+* query the hashes neighbors
+* query a hash the size of a block
+* query the hashes neighbors
+
+..  code :: javascript
+
+    db.tweets.find({
+        '$or': [{
+            'geohash': /^bdvkjqwr/,
+        }, {
+            'geohash': {
+                '$in': [
+                    /^bdvkjqy0/,
+                    /^bdvkjqy2/,
+                    /^bdvkjqy8/,
+                    /^bdvkjqwp/,
+                    /^bdvkjqwx/,
+                    /^bdvkjqwn/,
+                    /^bdvkjqwq/,
+                    /^bdvkjqww/,
+                ]
+            }
+        }, {
+            'geohash': /^bdvkjq/,
+        }, {
+            'geohash': {
+                '$in': [
+                    /^bdvkjp/,
+                    /^bdvkjr/,
+                    /^bdvkjx/,
+                    /^bdvkjn/,
+                    /^bdvkjw/,
+                    /^bdvkjj/,
+                    /^bdvkjm/,
+                    /^bdvkjt/,
+                ]
+            }
+        }],
+    }).limit(500).explain(verbose = true)
 
 Gotchas
 -------
@@ -533,5 +586,3 @@ is very simple.
 ..  _geohash: http://en.wikipedia.org/wiki/Geohash
 
 ..  _hierarchial storage management: http://en.wikipedia.org/wiki/Hierarchical_Storage_Management
-
-..  _geospatial mongodb using quadtrees and geohashes: geospatial-mongodb-using-quadtrees-and-geohashes.rst
