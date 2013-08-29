@@ -550,7 +550,7 @@ is very simple.
 Extra Info
 ==========
 
-Also check out `Interim Tables FTW <interim-tables-ftw.rst>`_ to see 
+Also check out `Interim Tables F.T.W. <interim-tables-ftw.rst>`_ to see 
 how the result set for or_ based cascaded multi-clause queries can be 
 stored into an interim table and a secondary query can be done against 
 the data.  Both solutions are a killer combination when it comes to 

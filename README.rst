@@ -17,6 +17,10 @@ Posts
 
   * `A Few Pages on Pagination, Page 3 <a-few-pages-on-pagination-page-3.rst>`_
 
+* K.I.S.S.
+
+  * `Interim Tables F.T.W. <interim-tables-ftw.rst>`_
+
 * Indexing Tricks
 
   * `Cascading Multi-Clause Queries <cascading-multi-clause-queries.rst>`_
