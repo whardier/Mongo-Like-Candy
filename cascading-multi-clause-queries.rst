@@ -471,15 +471,14 @@ last query got to.
 Geospatial Queries
 ------------------
 
-I've written a post called Geospatial MongoDB using Quadtrees and 
-Geohashes_
+In my article Geospatial MongoDB using Quadtrees and Geohashes_
 
 Gotchas
 -------
 
 There are of course a few gotchas with using this solution.
 
-No more sort_!
+No more cursor.sort_!
 ~~~~~~~~~~~~~~
 
 Go ahead and try it.  Instead of processing each or_ clause and 
@@ -540,4 +539,4 @@ References
 
 ..  _hierarchial storage management: http://en.wikipedia.org/wiki/Hierarchical_Storage_Management
 
-..  _Geospatial MongoDB using Quadtrees and Geohashes: geospatial-mongodb-using-quadtrees-and-geohashes.rst
+..  _geospatial mongodb using quadtrees and geohashes: geospatial-mongodb-using-quadtrees-and-geohashes.rst
