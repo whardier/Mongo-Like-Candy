@@ -1,6 +1,6 @@
-=============================
-Cascaded Multi-Clause Queries
-=============================
+==============================
+Cascading Multi-Clause Queries
+==============================
 
 :Author: Shane R. Spencer <shane@bogomip.com>
 :Date: Sun Oct 20 01:14:35 UTC 2013
@@ -11,36 +11,64 @@ Cascaded Multi-Clause Queries
 Preface
 =======
 
-MongoDB definitely encourages developers to think out of the box and
-create clever query solutions that don't completely rely on the 
-database server to do all the processing. One clever solution I refer 
-to as "Cascaded Multi-Clause Queries" focuses on combining various 
-index regions through a mixture of client side and server side 
-logic.
+MongoDB definately encourages developers to think outside of the relational 
+database box and create some clever query optimizations that allow MongoDB to 
+operate at its peak performance.  This includes finding ways to reduce table 
+scans, discovering the right index for the job, and using some lesser known 
+optimizations like the `$or`_ logical query operator to do what I have been 
+calling 'Cascading Multi-Clause Queries'.
 
-"Cascading" refers to organizing each step of a multi-clause index so 
-that certain index regions are processed in a specific order.  Usage 
-of the limit cursor method allows for the query to exit without 
-processing all the clauses if the limit size is reached.
+MongoDB supports multi-clause queries by way of the `$or`_ logical query 
+operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of 
+extra information in the form of `cursor.explain().clauses`_ which is a series 
+of `cursor.explain()`_ information for each part of the query.
 
-MongoDB supports multi-clause queries by way of the or query 
-operator and can be seen as cursor.explain.clauses.
+A 2 clause query from the official `MongoDB documentation 
+<http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where 
+``price`` is part of the first clause and ``sale`` is part of the second and 
+``qty`` further filters the results of each:
 
-This query solution is incredibly useful for a variety of highly 
+..  code :: javascript
+
+    db.inventory.find({
+        $or: [{
+            price: 1.99
+        }, {
+            sale: true
+        }],
+        qty: {
+            $in: [20,
+                50
+            ]
+        }
+    })
+
+'Cascading' refers to organizing each step of a multi-clause index so that 
+certain index regions are processed in a specific order.  Usage of the 
+`cursor.limit()` method allows for the query to exit without processing all the 
+clauses if the limit size is reached.
+
+In the inventory example where `price = 1.99` or `sale = true` if there are 100 
+inventory items with a price of `1.99` that match the `qty` filter then the 
+clause that uses `sale` will never be accessed.  Therefore some caution should 
+be used when using `cursor.limit()`_ along with `$or`__ However this is an 
+amazing optimization as well.
+
+This query solution is incredibly useful for a variety of highly
 specific queries and has a very unique pagination property.
 
 * Selecting one index area before another.
 
-* Finding geographically aware documents without 2d or 2dsphere 
+* Finding geographically aware documents without 2d or 2dsphere
   indexes.
 
-* Creating an index pyramid where smaller focused areas are queried 
+* Creating an index pyramid where smaller focused areas are queried
   before larger areas.
 
-* Pseudo-sorting very large volumes of data without requiring using 
+* Pseudo-sorting very large volumes of data without requiring using
   cursor.sort.
 
-* Removing index ranges from pagination results as the result set 
+* Removing index ranges from pagination results as the result set
   grows.
 
 Summary
@@ -151,7 +179,7 @@ The Solution
 
 Building a query for that using or is relatively easy since we know 
 exactly what we want to search for.  From the API standpoint the 
-language needs to append dictionary or SON objects to the ``$or`` 
+language needs to append dictionary or SON objects to the `$or`_
 field in order.  For the following example query we will turn on 
 cursor.explain with ``verbose`` toggled on.
 
@@ -557,8 +585,22 @@ Extra Info
 ==========
 
 Also check out `Interim Tables F.T.W. <interim-tables-ftw.rst>` to see 
-how the result set for or based cascaded multi-clause queries can be 
+how the result set for or based cascading multi-clause queries can be 
 stored into an interim table and a secondary query can be done against 
 the data.  Both solutions are a killer combination when it comes to 
 keeping index size down and creating simple and straight forward data 
 sets highly searchable and easily paginated.
+
+References
+==========
+
+..  target-notes::
+
+..  _$or: http://docs.mongodb.org/manual/reference/operator/or/
+
+..  _cursor.limit(): http://docs.mongodb.org/manual/reference/method/cursor.limit/
+
+..  _cursor.explain(): http://docs.mongodb.org/manual/reference/method/cursor.explain/
+
+..  _cursor.explain().clauses: http://docs.mongodb.org/manual/reference/method/cursor.explain/#or-query-output-fields
+
