@@ -8,6 +8,16 @@ Cascading Multi-Clause Queries
 .. contents ::
     :backlinks: entry
 
+..  _$or: http://docs.mongodb.org/manual/reference/operator/or/
+
+..  _cursor.limit(): http://docs.mongodb.org/manual/reference/method/cursor.limit/
+
+..  _cursor.explain(): http://docs.mongodb.org/manual/reference/method/cursor.explain/
+
+..  _cursor.explain().clauses: http://docs.mongodb.org/manual/reference/method/cursor.explain/#or-query-output-fields
+
+..  _mongodb: http://www.mongodb.org/
+
 Preface
 =======
 
@@ -590,19 +600,4 @@ stored into an interim table and a secondary query can be done against
 the data.  Both solutions are a killer combination when it comes to 
 keeping index size down and creating simple and straight forward data 
 sets highly searchable and easily paginated.
-
-References
-==========
-
-..  target-notes::
-
-..  _$or: http://docs.mongodb.org/manual/reference/operator/or/
-
-..  _cursor.limit(): http://docs.mongodb.org/manual/reference/method/cursor.limit/
-
-..  _cursor.explain(): http://docs.mongodb.org/manual/reference/method/cursor.explain/
-
-..  _cursor.explain().clauses: http://docs.mongodb.org/manual/reference/method/cursor.explain/#or-query-output-fields
-
-..  _mongodb: http://www.mongodb.org/
 
