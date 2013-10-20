@@ -50,20 +50,20 @@ If there are 100 inventory items with a price of ``1.99`` that match the ``qty``
 
 Optimization's that benefit from `$or`_:
 
-  * Selecting one index area before another.
+* Selecting one index area before another.
 
-  * Finding geographically aware documents without 2d or 2dsphere
-    indexes.
+* Finding geographically aware documents without 2d or 2dsphere
+  indexes.
 
-  * Creating an index pyramid where smaller focused areas are queried
-    before larger areas.
+* Creating an index pyramid where smaller focused areas are queried
+  before larger areas.
 
-  * Pseudo-sorting very large volumes of data without requiring using
-    cursor.sort.
+* Pseudo-sorting very large volumes of data without requiring using
+  cursor.sort.
 
-  * Removing index ranges from pagination results as the result set
-    grows.
-
+* Removing index ranges from pagination results as the result set
+  grows.
+    
 Summary
 =======
 
