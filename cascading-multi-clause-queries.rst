@@ -21,23 +21,11 @@ Cascading Multi-Clause Queries
 Preface
 =======
 
-`MongoDB`_ definately encourages developers to think outside of the relational 
-database box and create some clever query optimizations that allow `MongoDB`_ to 
-operate at its peak performance.  This includes finding ways to reduce table 
-scans, discovering the right index for the job, and using some lesser known 
-optimizations like the `$or`_ logical query operator to do what I have been 
-calling ``Cascading Multi-Clause Queries``.
+`MongoDB`_ definately encourages developers to think outside of the relational database box and create some clever query optimizations that allow `MongoDB`_ to operate at its peak performance.  This includes finding ways to reduce table scans, discovering the right index for the job, and using some lesser known optimizations like the `$or`_ logical query operator to do what I have been calling ``Cascading Multi-Clause Queries``.
 
-`MongoDB`_ supports multi-clause queries by way of the `$or`_ logical query 
-operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of 
-extra information in the form of `cursor.explain().clauses`_ which is an ordered 
-list of query clause statistical and performance information similar the output 
-of `cursor.explain()`_ without the use of `$or`_.
+`MongoDB`_ supports multi-clause queries by way of the `$or`_ logical query operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of extra information in the form of `cursor.explain().clauses`_ which is an ordered list of the sort of output you would expect from `cursor.explain()`_ for each clause of the query.
 
-Here is a 2 clause query from the official `MongoDB documentation 
-<http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where 
-``price`` is part of the first clause and ``sale`` is part of the second and 
-``qty`` further filters the results of each:
+Here is a 2 clause query from the official `MongoDB documentation <http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where ``price`` is part of the first clause and ``sale`` is part of the second and ``qty`` further filters the results of each:
 
 ..  code :: javascript
 
@@ -54,19 +42,11 @@ Here is a 2 clause query from the official `MongoDB documentation
         }
     })
 
-'Cascading' refers to organizing each step of a multi-clause index so that 
-certain index regions are processed in a specific order.  Usage of the 
-`cursor.limit()` method allows for the query to exit without processing all the 
-clauses if the limit size is reached.
+``Cascading`` refers to organizing each step of a multi-clause index so that certain index regions are processed in a specific order.  Usage of the `cursor.limit()`_ method allows for the query to exit without processing all the clauses if the limit size is reached.
 
-In the inventory example where `price = 1.99` or `sale = true` if there are 100 
-inventory items with a price of `1.99` that match the `qty` filter then the 
-clause that uses `sale` will never be accessed.  Therefore some caution should 
-be used when using `cursor.limit()`_ along with `$or`__ However this is an 
-amazing optimization as well.
+In the inventory example where ``price = 1.99`` or ``sale = true`` if there are 100 inventory items with a price of ``1.99`` that match the ``qty`` filter and we limit the query to 100 documents then the clause that uses ``sale`` will never become neccisary and will never become part of the clause.  Therefore some caution should be used when using `cursor.limit()`_ along with `$or`_ However this is an amazing optimization as well.
 
-This query solution is incredibly useful for a variety of highly
-specific queries and has a very unique pagination property.
+This query solution is incredibly useful for a variety of highly specific queries and has a very unique pagination property.
 
 * Selecting one index area before another.
 
