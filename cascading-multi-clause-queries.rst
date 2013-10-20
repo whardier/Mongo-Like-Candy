@@ -30,10 +30,11 @@ calling ``Cascading Multi-Clause Queries``.
 
 `MongoDB`_ supports multi-clause queries by way of the `$or`_ logical query 
 operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of 
-extra information in the form of `cursor.explain().clauses`_ which is a series 
-of `cursor.explain()`_ information for each part of the query.
+extra information in the form of `cursor.explain().clauses`_ which is an ordered 
+list of query clause statistical and performance information similar the output 
+of `cursor.explain()`_ without the use of `$or`_.
 
-A 2 clause query from the official `MongoDB documentation 
+Here is a 2 clause query from the official `MongoDB documentation 
 <http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where 
 ``price`` is part of the first clause and ``sale`` is part of the second and 
 ``qty`` further filters the results of each:
