@@ -12,11 +12,23 @@ Cascading Multi-Clause Queries
 
 ..  _cursor.limit(): http://docs.mongodb.org/manual/reference/method/cursor.limit/
 
+..  _cursor.sort(): http://docs.mongodb.org/manual/reference/method/cursor.sort/
+
+..  _cursor.skip(): http://docs.mongodb.org/manual/reference/method/cursor.skip/
+
 ..  _cursor.explain(): http://docs.mongodb.org/manual/reference/method/cursor.explain/
 
 ..  _cursor.explain().clauses: http://docs.mongodb.org/manual/reference/method/cursor.explain/#or-query-output-fields
 
 ..  _mongodb: http://www.mongodb.org/
+
+..  _2d: http://docs.mongodb.org/manual/core/2d/
+
+..  _2dsphere: http://docs.mongodb.org/manual/core/2dsphere/
+
+..  _mongoimport: http://docs.mongodb.org/manual/reference/program/mongoimport/
+
+..  _geojson: http://docs.mongodb.org/manual/reference/glossary/#term-geojson
 
 ..  _hierarchical storage management: http://en.wikipedia.org/wiki/Hierarchical_storage_management
 
@@ -27,7 +39,7 @@ Preface
 
 `MongoDB`_ supports multi-clause queries by way of the `$or`_ logical query operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of extra information in the form of `cursor.explain().clauses`_ which is an ordered list of the sort of output you would expect from `cursor.explain()`_ for each clause of the query.
 
-``Cascading`` refers to organizing each step of a multi-clause query so that certain document scans and index regions are processed in a specific order.  Usage of the `cursor.limit()`_ method allows for the query to exit without processing all the clauses if the limit size is reached. Ideally each clause would have an index associated with it.
+``Cascading`` refers to organizing each step of a multi-clause query so that certain index regions and table scans are processed in a specific order.  Usage of the `cursor.limit()`_ method allows for the query to exit without processing all the clauses if the limit size is reached. Ideally each clause would have an index associated with it.
 
 Here is a 2 clause query from the official `MongoDB documentation <http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where ``price`` is part of the first query clause and ``sale`` is part of the second while ``qty`` further filters the results of each:
 
@@ -50,19 +62,13 @@ If there are 100 inventory items with a price of ``1.99`` that match the ``qty``
 
 Optimization's that benefit from `$or`_:
 
-* Selecting one index area before another.
+* An index pyramid where more focused sparse and small indexes are queried before others.
 
-* Finding geographically aware documents without 2d or 2dsphere
-  indexes.
+* Priority cascading user defined or hash based geo queries without utilizing `2d`_ or `2dsphere`_ indexes.
 
-* Creating an index pyramid where smaller focused areas are queried
-  before larger areas.
+* Pseudo-sorting very large volumes of data without requiring using `cursor.sort()`_.
 
-* Pseudo-sorting very large volumes of data without requiring using
-  cursor.sort.
-
-* Removing index ranges from pagination results as the result set
-  grows.
+* Removing clauses from pagination results as the result set grows to support faster `cursor.skip()`_ operations.
     
 Summary
 =======
