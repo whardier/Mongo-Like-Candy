@@ -6,6 +6,7 @@ Articles:
 
 ..  toctree::
     :glob:
+    :maxdepth: 2
 
     articles/*
 
