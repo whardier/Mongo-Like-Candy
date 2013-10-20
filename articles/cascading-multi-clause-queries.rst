@@ -5,7 +5,8 @@ Cascading Multi-Clause Queries
 :Author: Shane R. Spencer <shane@bogomip.com>
 :Date: Sun Oct 20 01:14:35 UTC 2013
 
-..  toctree::
+..  toctree:: Contents
+    :maxdepth: 2
     
 ..  _$or: http://docs.mongodb.org/manual/reference/operator/or/
 
