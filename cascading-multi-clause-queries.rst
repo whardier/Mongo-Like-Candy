@@ -3,7 +3,7 @@ Cascaded Multi-Clause Queries
 =============================
 
 :Author: Shane R. Spencer <shane@bogomip.com>
-:Date: Wed Aug 28 02:25:34 UTC 2013
+:Date: Sun Oct 20 01:14:35 UTC 2013
 
 .. contents ::
     :backlinks: entry
@@ -535,8 +535,8 @@ Gotchas
 
 There are of course a few gotchas with using this solution.
 
-No more cursor.sort_
---------------------
+No more cursor.sort
+-------------------
 
 Go ahead and try it.  Instead of processing each or clause and 
 returning sorted chunks you will instead process the index directly 
