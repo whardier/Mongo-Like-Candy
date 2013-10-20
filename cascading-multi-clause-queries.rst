@@ -11,14 +11,14 @@ Cascading Multi-Clause Queries
 Preface
 =======
 
-MongoDB definately encourages developers to think outside of the relational 
-database box and create some clever query optimizations that allow MongoDB to 
+`MongoDB`_ definately encourages developers to think outside of the relational 
+database box and create some clever query optimizations that allow `MongoDB`_ to 
 operate at its peak performance.  This includes finding ways to reduce table 
 scans, discovering the right index for the job, and using some lesser known 
 optimizations like the `$or`_ logical query operator to do what I have been 
-calling 'Cascading Multi-Clause Queries'.
+calling ``Cascading Multi-Clause Queries``.
 
-MongoDB supports multi-clause queries by way of the `$or`_ logical query 
+`MongoDB`_ supports multi-clause queries by way of the `$or`_ logical query 
 operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of 
 extra information in the form of `cursor.explain().clauses`_ which is a series 
 of `cursor.explain()`_ information for each part of the query.
@@ -603,4 +603,6 @@ References
 ..  _cursor.explain(): http://docs.mongodb.org/manual/reference/method/cursor.explain/
 
 ..  _cursor.explain().clauses: http://docs.mongodb.org/manual/reference/method/cursor.explain/#or-query-output-fields
+
+..  _mongodb: http://www.mongodb.org/
 
