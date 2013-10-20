@@ -18,14 +18,18 @@ Cascading Multi-Clause Queries
 
 ..  _mongodb: http://www.mongodb.org/
 
+..  _hierarchical storage management: http://en.wikipedia.org/wiki/Hierarchical_storage_management
+
 Preface
 =======
 
-`MongoDB`_ definately encourages developers to think outside of the relational database box and create some clever query optimizations that allow `MongoDB`_ to operate at its peak performance.  This includes finding ways to reduce table scans, discovering the right index for the job, and using some lesser known optimizations like the `$or`_ logical query operator to do what I have been calling ``Cascading Multi-Clause Queries``.
+`MongoDB`_ definitely encourages developers to think outside of the relational database box and create some clever query optimization's that allow `MongoDB`_ to operate at its peak performance.  This includes finding ways to reduce table scans, discovering the right index for the job, and using some lesser known optimization's like the `$or`_ logical query operator to do what I have been calling ``Cascading Multi-Clause Queries``.
 
 `MongoDB`_ supports multi-clause queries by way of the `$or`_ logical query operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of extra information in the form of `cursor.explain().clauses`_ which is an ordered list of the sort of output you would expect from `cursor.explain()`_ for each clause of the query.
 
-Here is a 2 clause query from the official `MongoDB documentation <http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where ``price`` is part of the first clause and ``sale`` is part of the second and ``qty`` further filters the results of each:
+``Cascading`` refers to organizing each step of a multi-clause query so that certain document scans and index regions are processed in a specific order.  Usage of the `cursor.limit()`_ method allows for the query to exit without processing all the clauses if the limit size is reached. Ideally each clause would have an index associated with it.
+
+Here is a 2 clause query from the official `MongoDB documentation <http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where ``price`` is part of the first query clause and ``sale`` is part of the second while ``qty`` further filters the results of each:
 
 ..  code :: javascript
 
@@ -42,30 +46,28 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
         }
     })
 
-``Cascading`` refers to organizing each step of a multi-clause index so that certain index regions are processed in a specific order.  Usage of the `cursor.limit()`_ method allows for the query to exit without processing all the clauses if the limit size is reached.
+If there are 100 inventory items with a price of ``1.99`` that match the ``qty`` filter and we limit the overall query to 100 documents then the ``price`` clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how ``cascading`` is being put to use by returning documents in clause processed order which turns out to be an amazing optimization for developers interested in implementing priority based queries or `hierarchical storage management`_ may be required.
 
-In the inventory example where ``price = 1.99`` or ``sale = true`` if there are 100 inventory items with a price of ``1.99`` that match the ``qty`` filter and we limit the query to 100 documents then the clause that uses ``sale`` will never become neccisary and will never become part of the clause.  Therefore some caution should be used when using `cursor.limit()`_ along with `$or`_ However this is an amazing optimization as well.
+Optimization's that benefit from `$or`_:
 
-This query solution is incredibly useful for a variety of highly specific queries and has a very unique pagination property.
+    * Selecting one index area before another.
 
-* Selecting one index area before another.
+    * Finding geographically aware documents without 2d or 2dsphere
+      indexes.
 
-* Finding geographically aware documents without 2d or 2dsphere
-  indexes.
+    * Creating an index pyramid where smaller focused areas are queried
+      before larger areas.
 
-* Creating an index pyramid where smaller focused areas are queried
-  before larger areas.
+    * Pseudo-sorting very large volumes of data without requiring using
+      cursor.sort.
 
-* Pseudo-sorting very large volumes of data without requiring using
-  cursor.sort.
-
-* Removing index ranges from pagination results as the result set
-  grows.
+    * Removing index ranges from pagination results as the result set
+      grows.
 
 Summary
 =======
 
-I inadvertantly found out about multi-clause queries examining a well 
+I inadvertently found out about multi-clause queries examining a well 
 crafted query that I was hopeful would do what I wanted.  I was using 
 or on different values of a location field.  The goal for me was to 
 first query documents with a specific location and then all the 
@@ -407,7 +409,7 @@ query would be nice and fast.
         "server" : "buckaroobanzai:27017"
     }
 
-This is right in line with how `hierarchial storage management` is 
+This is right in line with how `hierarchical storage management`_ is 
 done.  If we are clever we can isolate low traffic index ranges to 
 less expensive shard servers and use this solution to only hit those 
 servers if the rest of the shards could not completely satisfy the 
@@ -566,7 +568,7 @@ You have to do more client side code
 ------------------------------------
 
 I couldn't be happier about that.  Making specific use of a very 
-simple database solution (comparitively speaking) is going to 
+simple database solution (comparatively speaking) is going to 
 eventually require some pre and post processing by the client if you 
 want to do anything that isn't directly supported.  Thankfully 
 MongoDB is very **streamy** and processing a cursor in most languages 
