@@ -85,7 +85,7 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
         }
     });
 
-If there are **100** inventory items with a price of **1.99** that match the **qty** filter and we limit the overall query to 100 documents then the **price** clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how **cascading** is being put to use by returning documents in clause processed order which turns out to be an amazing optimization for developers interested in implementing priority based queries or `hierarchical storage management`_ may be required.
+If there are **100** inventory items with a price of **1.99** that match the **qty** filter and we limit the overall query to **100** documents then the **price** clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how **cascading** is being put to use by returning documents in clause processed order which turns out to be an amazing optimization for developers interested in implementing priority based queries or `hierarchical storage management`_ may be required.
 
 Optimization's that benefit from `$or`_:
 
