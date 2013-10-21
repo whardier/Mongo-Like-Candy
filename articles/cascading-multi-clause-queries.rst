@@ -39,6 +39,8 @@ Cascading Multi-Clause Queries
 
 ..  _compound indexes: http://docs.mongodb.org/manual/core/index-compound
 
+..  _compound index: http://docs.mongodb.org/manual/core/index-compound
+
 Preface
 =======
 
@@ -151,12 +153,12 @@ a TTL special index.
 
 The user has the following preference:
 
-* The city ``Los Angeles, CA``
-* The city ``Manhattan, NY``
-* The city ``Philadelphia, PA``
-* The city ``Chicago, IL``
-* The city ``Houston, TX``
-* The country ``United States``
+* ``Los Angeles, CA``
+* ``Manhattan, NY``
+* ``Philadelphia, PA``
+* ``Chicago, IL``
+* ``Houston, TX``
+* and finally simply ``United States``
 
 The Solution
 ============
