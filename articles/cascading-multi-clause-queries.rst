@@ -52,7 +52,7 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
 
 ..  code:: javascript
 
-    > db.inventory.find({
+    db.inventory.find({
         $or: [{
             price: 1.99
         }, {
@@ -100,7 +100,7 @@ Geographically referenced `Twitter`_ posts contain location information through 
 
 ..  code:: javascript
 
-    > db.tweets.findOne({
+    db.tweets.findOne({
         'place.full_name': 'Los Angeles, CA'
     }, {
         'text': true,
@@ -135,7 +135,7 @@ The following compound index is in place for testing purely based on geocoded in
 
 ..  code:: javascript    
 
-    > db.tweets.ensureIndex({
+    db.tweets.ensureIndex({
         "place.country": 1,
         "place.full_name": 1
     });
