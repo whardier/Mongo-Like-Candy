@@ -23,6 +23,8 @@ Cascading Multi-Clause Queries
 
 ..  _cursor.explain().clauses: http://docs.mongodb.org/manual/reference/method/cursor.explain/#or-query-output-fields
 
+..  _db.collection.find(): http://docs.mongodb.org/manual/reference/method/db.collection.find/
+
 ..  _mongodb: http://www.mongodb.org/
 
 ..  _2d: http://docs.mongodb.org/manual/core/2d/
@@ -104,7 +106,7 @@ I inadvertently found out about multi-clause queries while examining a well craf
 
 To take advantage of this I knew I would need to feed the query an ordered set of locations which I would pregenerate based on my own algorithms based on the application users preferences.
 
-Logically, `$or`_ performed ordered queries where I was wrongly thinking of it as a post-filter for an index scan.
+Logically, `$or`_ performed multiple queries in order where I was wrongly thinking of it as a post-filter for a single query. Amazed it finally clicked that there was an opportunity be able extend a single query into a concatenation of multiple queries with a single execution of `db.collection.find()`_.
 
 Data
 ====
