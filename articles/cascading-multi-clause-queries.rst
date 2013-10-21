@@ -91,7 +91,7 @@ Optimization's that benefit from `$or`_:
 
 * A series of index scans where more focused `sparse indexes`_ or `compound indexes`_ are queried before others.
 
-* Index Pyramids for hash based value queries and geospatial queries without utilizing `2d`_ or `2dsphere`_ indexes.
+* Index pyramids for hash based value queries and geospatial queries without utilizing `2d`_ or `2dsphere`_ indexes.
 
 * Pseudo-sorting very large volumes of data without requiring using `cursor.sort()`_.
 
