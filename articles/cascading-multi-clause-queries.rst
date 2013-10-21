@@ -469,8 +469,8 @@ Gotchas
 
 There are of course a few gotchas with using this solution.
 
-No more cursor.sort
--------------------
+No more `cursor.sort`_
+----------------------
 
 Go ahead and try it.  Instead of processing each or clause and 
 returning sorted chunks you will instead process the index directly 
