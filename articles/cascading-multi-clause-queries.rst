@@ -53,13 +53,13 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
 ..  code:: javascript
 
     db.inventory.find({
-        $or: [{
+        '$or': [{
             price: 1.99
         }, {
             sale: true
         }],
         qty: {
-            $in: [20,
+            '$in': [20,
                 50
             ]
         }
