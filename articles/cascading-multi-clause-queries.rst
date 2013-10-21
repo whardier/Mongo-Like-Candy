@@ -89,7 +89,7 @@ If there are **100** inventory items with a price of **1.99** that match the **q
 
 Optimization's that benefit from `$or`_:
 
-* An series of index scans where more focused `sparse indexes`_ or `compound indexes`_ are queried before others.
+* A series of index scans where more focused `sparse indexes`_ or `compound indexes`_ are queried before others.
 
 * Index Pyramids for hash based value queries and geospatial queries without utilizing `2d`_ or `2dsphere`_ indexes.
 
