@@ -29,7 +29,15 @@ Cascading Multi-Clause Queries
 
 ..  _geojson: http://docs.mongodb.org/manual/reference/glossary/#term-geojson
 
+..  _json: http://docs.mongodb.org/manual/reference/glossary/#term-json
+
 ..  _hierarchical storage management: http://en.wikipedia.org/wiki/Hierarchical_storage_management
+
+..  _twitter: http://twitter.com/
+
+..  _twitter streaming api: https://dev.twitter.com/docs/streaming-apis
+
+..  _compound indexes: http://docs.mongodb.org/manual/core/index-compound
 
 Preface
 =======
@@ -74,55 +82,25 @@ Summary
 
 I inadvertently found out about multi-clause queries while examining a well crafted query that I was feeling incredibly hopeful about.  For this query I was looking to create a single stream of documents by querying different values of a ``location`` field and I ended up using `$or`_ to see how it would react.  The goal for me was to first query documents with a specific location and then all the surrounding cities in an order I had determined before making the query.
 
-To take advantage of this I knew I would need to feed the query an ordered set of locations which I could pregenerate based on my own algorithms based on the application users preferences.
+To take advantage of this I knew I would need to feed the query an ordered set of locations which I would pregenerate based on my own algorithms based on the application users preferences.
 
 Logically, `$or`_ performed ordered queries where I was wrongly thinking of it as a post-filter for an index scan.
 
 Data
 ====
 
-This article focuses on using a sample stream of geotagged Twitter posts using the `Twitter Streaming API`.  It may not surprise any of you that the JSON output from Twitter can be directly imported into MongoDB using mongoimport and contains valid GeoJSON for direct use with the 2dsphere geospatial index as well as an array of points that works well with the 2d geospatial index.
+This article focuses on using a sample stream of geographically referenced Twitter posts using the `Twitter Streaming API`_.  It may not surprise any of you that the `JSON`_ output from `Twitter`_ can be directly imported into `MongoDB`_ using `mongoimport`_ and contains valid `GeoJSON`_ for direct use with the `2dsphere`_ geospatial index as well as an array of points that works well with the `2d`_ geospatial index.
 
-Twitter posts make an **excellent** data source to use when testing indexing requirements like multi-lingual text searching, geospatial data, multi-key indexes, and works very well when you simply need a lot of very unique data to play with.
+`Twitter`_ posts make an **excellent** data source to use when testing indexing requirements like multi-lingual text searching, geospatial data, `compound indexes`_, and works very well when you simply need a lot of very unique data to play with.
 
-Sample Document
----------------
+Sample `Twitter`_ Post
+----------------------
 
-Geotagged Twitter posts contain location information through the 
-``places`` field which focuses on the geocoded city or state 
-information for the ``coordinates`` field that defines where on earth 
-the post was approximately made from.
+Geographically referenced `Twitter`_ posts contain location information through the ``place`` field which focuses on the nearest city and state information for the ``coordinates`` field that defines where on earth the post was approximately made from.
 
 ..  code :: javascript
 
-    // Simplified
-    
-    {
-        "_id" : ObjectId("521e8e89aca6a342d3f217ea"),
-        "text" : "Me, my dad, and my brother always get the exact order of food.",
-        "user" : {
-            "screen_name" : "CowlonFullerton",
-            "geo_enabled" : true,
-            "statuses_count" : 74382,
-            "followers_count" : 1808,
-        },
-        "coordinates" : {
-            "type" : "Point",
-            "coordinates" : [
-                -96.87688668,
-                37.81792338
-            ]
-        },
-        "place" : {
-            "place_type" : "city",
-            "name" : "El Dorado",
-            "full_name" : "El Dorado, KS",
-            "country" : "United States",
-        },
-        "entities" : {
-            "hashtags" : [ ],
-        },
-    }
+
         
 Indexes
 -------
@@ -136,10 +114,31 @@ being done to each index.
 
 ..  code :: javascript    
 
-    db.tweets.ensureIndex({
-        "place.country": 1,
-        "place.full_name": 1
-    });
+    > db.tweets.findOne({
+        'place.full_name': 'Los Angeles, CA'
+    }, {
+        'text': true,
+        'user.screen_name': true,
+        'coordinates': true,
+        'place.full_name': true
+    })
+    
+    {
+        "_id": ObjectId("52647c32b7c03befed384f00"),
+        "text": "Time is going by so fast.",
+        "user": {
+            "screen_name": "LaMrManMan"
+        },
+        "coordinates": {
+            "type": "Point",
+            "coordinates": [-118.18497793,
+                34.08546991
+            ]
+        },
+        "place": {
+            "full_name": "Los Angeles, CA"
+        }
+    }
     
 The Problem
 ===========
