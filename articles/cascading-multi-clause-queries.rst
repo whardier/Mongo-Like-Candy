@@ -256,7 +256,14 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
                     ]
                 }
             }]
-        }]
+        }],
+        "n" : 2188,
+        "nscannedObjects" : 2306,
+        "nscanned" : 2306,
+        "nscannedObjectsAllPlans" : 2306,
+        "nscannedAllPlans" : 2306,
+        "millis" : 76,
+        "server" : "buckaroobanzai:27017"
     }
         
 That's a lot of documents!, thankfully we can request that the user do 
