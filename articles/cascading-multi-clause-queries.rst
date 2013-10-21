@@ -274,66 +274,95 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
         "server": "buckaroobanzai:27017"
     }
             
-That's a lot of documents!, thankfully we can request that the user do 
-some pagination or fetch the cursor in batches.  The above information 
-shows that ``Los Angeles, CA`` has 265 documents associated with it 
-and ``Manhattan, NY`` has 246.  If the user set their document limit 
-to **500** they would only hit the first two clauses and of course the 
-query would be nice and fast.
+That's a lot of documents an we are of course dealing with `Twitter`_ so we know it's going to grow like crazy.  Thankfully we can request that the user do some pagination if they want to see all the documents.  The above information shows that ``Los Angeles, CA`` has **38** tweet documents associated with it and ``Manhattan, NY`` has **25**.  If the application limits each page to **50** documents per page the cursor would only fetch documents from the first two clauses for the first page.
 
 ..  code:: javascript
 
+    db.tweets.find({   
+        '$or': [{       
+            'place.country': 'United States',
+            'place.full_name': 'Los Angeles, CA',
+               
+        }, {       
+            'place.country': 'United States',
+            'place.full_name': 'Manhattan, NY',
+               
+        }, {       
+            'place.country': 'United States',
+            'place.full_name': 'Philadelphia, PA',
+               
+        }, {       
+            'place.country': 'United States',
+            'place.full_name': 'Chicago, IL',
+               
+        }, {       
+            'place.country': 'United States',
+            'place.full_name': 'Houston, TX',
+               
+        }, {       
+            'place.country': 'United States'   
+        }]
+    }).limit(50).explain(verbose = true);
+
+    
+    // Shortened and Simplified
     {
         "clauses" : [
             {
-                "cursor" : "BtreeCursor place.country_1_place.full_name_1",
-                "n" : 265,
-                "nscannedObjects" : 265,
-                "nscanned" : 265,
-                "millis" : 2,
-                "indexBounds" : {
-                    "place.country" : [
-                        [
-                            "United States",
-                            "United States"
-                        ]
-                    ],
-                    "place.full_name" : [
-                        [
-                            "Los Angeles, CA",
-                            "Los Angeles, CA"
-                        ]
-
-
-                    ]
-                },
+                "allPlans" : [
+                    {
+                        "cursor" : "BtreeCursor place.country_1_place.full_name_1",
+                        "n" : 38,
+                        "nscannedObjects" : 38,
+                        "nscanned" : 38,
+                        "indexBounds" : {
+                            "place.country" : [
+                                [
+                                    "United States",
+                                    "United States"
+                                ]
+                            ],
+                            "place.full_name" : [
+                                [
+                                    "Los Angeles, CA",
+                                    "Los Angeles, CA"
+                                ]
+                            ]
+                        }
+                    }
+                ]
             },
             {
-                "cursor" : "BtreeCursor place.country_1_place.full_name_1",
-                "n" : 235,
-                "nscannedObjects" : 235,
-                "nscanned" : 235,
-                "millis" : 10,
-                "indexBounds" : {
-                    "place.country" : [
-                        [
-                            "United States",
-                            "United States"
-                        ]
-                    ],
-                    "place.full_name" : [
-                        [
-                            "Manhattan, NY",
-                            "Manhattan, NY"
-                        ]
-                    ]
-                },
+                "allPlans" : [
+                    {
+                        "cursor" : "BtreeCursor place.country_1_place.full_name_1",
+                        "n" : 12,
+                        "nscannedObjects" : 12,
+                        "nscanned" : 12,
+                        "indexBounds" : {
+                            "place.country" : [
+                                [
+                                    "United States",
+                                    "United States"
+                                ]
+                            ],
+                            "place.full_name" : [
+                                [
+                                    "Manhattan, NY",
+                                    "Manhattan, NY"
+                                ]
+                            ]
+                        }
+                    }
+                ]
             }
         ],
-        "n" : 500,
-        "nscannedObjects" : 500,
-        "nscanned" : 500,
-        "millis" : 12,
+        "n" : 50,
+        "nscannedObjects" : 50,
+        "nscanned" : 50,
+        "nscannedObjectsAllPlans" : 50,
+        "nscannedAllPlans" : 50,
+        "millis" : 0,
         "server" : "buckaroobanzai:27017"
     }
 
@@ -369,7 +398,7 @@ of two ways depending on how flexible we want this query.
             'place.country': 'United States',
         }],
         'user.followers_count': { '$gte': 500 },
-    }).limit(500).explain(verbose = true)
+    }).limit(50).explain(verbose = true)
 
 ..  code-block :: javascript
 
