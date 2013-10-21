@@ -195,14 +195,11 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
             'place.country': 'United States'   
         }]
     }).explain(verbose = true);
-    
+
     {
         "clauses": [{
             "allPlans": [{
                 "cursor": "BtreeCursor place.country_1_place.full_name_1",
-                "n": 38,
-                "nscannedObjects": 38,
-                "nscanned": 38,
                 "indexBounds": {
                     "place.country": [
                         [
@@ -221,9 +218,6 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
         }, {
             "allPlans": [{
                 "cursor": "BtreeCursor place.country_1_place.full_name_1",
-                "n": 25,
-                "nscannedObjects": 25,
-                "nscanned": 25,
                 "indexBounds": {
                     "place.country": [
                         [
@@ -240,74 +234,10 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
                 }
             }]
         }, {
-            "allPlans": [{
-                "cursor": "BtreeCursor place.country_1_place.full_name_1",
-                "n": 17,
-                "nscannedObjects": 17,
-                "nscanned": 17,
-                "indexBounds": {
-                    "place.country": [
-                        [
-                            "United States",
-                            "United States"
-                        ]
-                    ],
-                    "place.full_name": [
-                        [
-                            "Philadelphia, PA",
-                            "Philadelphia, PA"
-                        ]
-                    ]
-                }
-            }]
+        // ...
         }, {
             "allPlans": [{
                 "cursor": "BtreeCursor place.country_1_place.full_name_1",
-                "n": 22,
-                "nscannedObjects": 22,
-                "nscanned": 22,
-                "indexBounds": {
-                    "place.country": [
-                        [
-                            "United States",
-                            "United States"
-                        ]
-                    ],
-                    "place.full_name": [
-                        [
-                            "Chicago, IL",
-                            "Chicago, IL"
-                        ]
-                    ]
-                }
-            }]
-        }, {
-            "allPlans": [{
-                "cursor": "BtreeCursor place.country_1_place.full_name_1",
-                "n": 16,
-                "nscannedObjects": 16,
-                "nscanned": 16,
-                "indexBounds": {
-                    "place.country": [
-                        [
-                            "United States",
-                            "United States"
-                        ]
-                    ],
-                    "place.full_name": [
-                        [
-                            "Houston, TX",
-                            "Houston, TX"
-                        ]
-                    ]
-                }
-            }]
-        }, {
-            "allPlans": [{
-                "cursor": "BtreeCursor place.country_1_place.full_name_1",
-                "n": 2070,
-                "nscannedObjects": 2188,
-                "nscanned": 2188,
                 "indexBounds": {
                     "place.country": [
                         [
@@ -324,16 +254,9 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
                     ]
                 }
             }]
-        }],
-        "n": 2188,
-        "nscannedObjects": 2306,
-        "nscanned": 2306,
-        "nscannedObjectsAllPlans": 2306,
-        "nscannedAllPlans": 2306,
-        "millis": 76,
-        "server": "buckaroobanzai:27017"
+        }]
     }
-    
+        
 That's a lot of documents!, thankfully we can request that the user do 
 some pagination or fetch the cursor in batches.  The above information 
 shows that ``Los Angeles, CA`` has 265 documents associated with it 
