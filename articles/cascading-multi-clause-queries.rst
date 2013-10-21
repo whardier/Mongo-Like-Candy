@@ -145,19 +145,20 @@ The following `compound index`_ is in place for testing purely based on the geog
 The Problem
 ===========
 
-Based on a user preference we want to query all users that have more 
-than 500 followers that have made a post recently from one major city 
-to the next and then eventually the entire country.  We will just 
-assume that documents in the collection are 'recent', perhaps by using 
-a TTL special index.
+Based on the applicatoin user's preference we want to query all twitter users that have more than 500 followers and have made a post recently from one major city to the next and then eventually the entire country.
 
 The user has the following preference:
 
 * ``Los Angeles, CA``
+
 * ``Manhattan, NY``
+
 * ``Philadelphia, PA``
+
 * ``Chicago, IL``
+
 * ``Houston, TX``
+
 * and finally simply ``United States``
 
 The Solution
