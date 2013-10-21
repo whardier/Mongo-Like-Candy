@@ -44,13 +44,13 @@ Cascading Multi-Clause Queries
 Preface
 =======
 
-`MongoDB`_ definitely encourages developers to think outside of the relational database box and create some clever query optimization's that allow `MongoDB`_ to operate at its peak performance.  This includes finding ways to reduce table scans, discovering the right index for the job, and using some lesser known optimization's like the `$or`_ logical query operator to do what I have been calling ``Cascading Multi-Clause Queries``.
+`MongoDB`_ definitely encourages developers to think outside of the relational database box and create some clever query optimization's that allow `MongoDB`_ to operate at its peak performance.  This includes finding ways to reduce table scans, discovering the right index for the job, and using some lesser known optimization's like the `$or`_ logical query operator to do what I have been calling **Cascading Multi-Clause Queries**.
 
 Multi-clause queries are done by way of the `$or`_ logical query operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of extra information in the form of `cursor.explain().clauses`_ which is an ordered list of query plans that will be executed.
 
-``Cascading`` refers to the application level preference of a multi-clause query so that certain index regions and table scans are processed in a specific order.  Furthermore, the application can choose to use the `cursor.limit()`_ method that allows multi-clause queries to exit early without processing all the clauses if the limit is reached.  What a wonderful optimization for large data sets.
+**Cascading** refers to the application level preference of a multi-clause query so that certain index regions and table scans are processed in a specific order.  Furthermore, the application can choose to use the `cursor.limit()`_ method that allows multi-clause queries to exit early without processing all the clauses if the limit is reached.  What a wonderful optimization for large data sets.
 
-Here is a 2 clause query from the official `MongoDB documentation <http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where ``price`` is part of the first query clause and ``sale`` is part of the second while ``qty`` further filters the results of each:
+Here is a 2 clause query from the official `MongoDB documentation <http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where **price** is part of the first query clause and **sale** is part of the second while **qty** further filters the results of each:
 
 ..  code:: javascript
 
@@ -67,7 +67,7 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
         }
     });
 
-If there are 100 inventory items with a price of ``1.99`` that match the ``qty`` filter and we limit the overall query to 100 documents then the ``price`` clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how ``cascading`` is being put to use by returning documents in clause processed order which turns out to be an amazing optimization for developers interested in implementing priority based queries or `hierarchical storage management`_ may be required.
+If there are 100 inventory items with a price of **1.99** that match the **qty** filter and we limit the overall query to 100 documents then the **price** clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how **cascading** is being put to use by returning documents in clause processed order which turns out to be an amazing optimization for developers interested in implementing priority based queries or `hierarchical storage management`_ may be required.
 
 Optimization's that benefit from `$or`_:
 
@@ -82,7 +82,7 @@ Optimization's that benefit from `$or`_:
 Summary
 =======
 
-I inadvertently found out about multi-clause queries while examining a well crafted query that I was feeling incredibly hopeful about.  For this query I was looking to create a single stream of documents by querying different values of a ``location`` field and I ended up using `$or`_ to see how it would react.  The goal for me was to first query documents with a specific location and then all the surrounding cities in an order I had determined before making the query.
+I inadvertently found out about multi-clause queries while examining a well crafted query that I was feeling incredibly hopeful about.  For this query I was looking to create a single stream of documents by querying different values of a **location** field and I ended up using `$or`_ to see how it would react.  The goal for me was to first query documents with a specific location and then all the surrounding cities in an order I had determined before making the query.
 
 To take advantage of this I knew I would need to feed the query an ordered set of locations which I would pregenerate based on my own algorithms based on the application users preferences.
 
@@ -98,7 +98,7 @@ This article focuses on using a sample stream of geographically referenced Twitt
 Sample `Twitter`_ Post
 ----------------------
 
-Geographically referenced `Twitter`_ posts contain location information through the ``place`` field which focuses on the nearest city and state information for the ``coordinates`` field that defines where on earth the post was approximately made from.
+Geographically referenced `Twitter`_ posts contain location information through the **place** field which focuses on the nearest city and state information for the **coordinates** field that defines where on earth the post was approximately made from.
 
 ..  code:: javascript
 
@@ -149,24 +149,24 @@ Based on the applicatoin user's preference we want to query all twitter users th
 
 The user has the following preference:
 
-* ``Los Angeles, CA``
+* **Los Angeles, CA**
 
-* ``Manhattan, NY``
+* **Manhattan, NY**
 
-* ``Philadelphia, PA``
+* **Philadelphia, PA**
 
-* ``Chicago, IL``
+* **Chicago, IL**
 
-* ``Houston, TX``
+* **Houston, TX**
 
-* and finally simply ``United States``
+* and finally simply **United States**
 
 The Solution
 ============
 
-Building a query for that using or is relatively easy since we know exactly what we want to search for.  From the API standpoint the language needs to append dictionary or SON objects to the `$or`_ field in order.  For the following example query we will turn on cursor.explain with ``verbose`` toggled on.
+Building a query for that using or is relatively easy since we know exactly what we want to search for.  From the API standpoint the language needs to append dictionary or SON objects to the `$or`_ field in order.  For the following example query we will turn on cursor.explain with **verbose** toggled on.
 
-Since we used `$or`_ we will have a ``clauses`` array that specifies the query plans being used.
+Since we used `$or`_ we will have a **clauses** array that specifies the query plans being used.
 
 ..  code-block :: javascript
     
@@ -274,7 +274,7 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
         "server": "buckaroobanzai:27017"
     }
             
-That's a lot of documents an we are of course dealing with `Twitter`_ so we know it's going to grow like crazy.  Thankfully we can request that the user do some pagination if they want to see all the documents.  The above information shows that ``Los Angeles, CA`` has **38** tweet documents associated with it and ``Manhattan, NY`` has **25**.  If the application limits each page to **50** documents per page the cursor would only fetch documents from the first two clauses for the first page.
+That's a lot of documents an we are of course dealing with `Twitter`_ so we know it's going to grow like crazy.  Thankfully we can request that the user do some pagination if they want to see all the documents.  The above information shows that **Los Angeles, CA** has **38** tweet documents associated with it and **Manhattan, NY** has **25**.  If the application limits each page to **50** documents per page the cursor would only fetch documents from the first two clauses for the first page.
 
 ..  code:: javascript
 
@@ -429,7 +429,7 @@ of two ways depending on how flexible we want this query.
         }],
     }).limit(500).explain(verbose = true)
 
-The latter query allows us to change ``user.followers_count`` to match 
+The latter query allows us to change **user.followers_count** to match 
 any limit the user requests.  Perhaps they want to scan the country 
 for any individuals with over 10000 followers.
 
@@ -443,11 +443,11 @@ Pagination
 ----------
 
 Without going to far into it.  If you're client side can tell you 
-where it last left off (say.. the middle of ``Manhattan, NY``) your 
-client side code can simply leave ``Los Angeles, CA`` out of the loop.  
+where it last left off (say.. the middle of **Manhattan, NY**) your 
+client side code can simply leave **Los Angeles, CA** out of the loop.  
 Unfortunately since your clauses aren't individually sorted (see 
 Gotchas_) it can be a bit difficult to pick up where you left off 
-without also knowing how many documents into ``Manhattan, NY`` the 
+without also knowing how many documents into **Manhattan, NY** the 
 last query got to.
        
 Geospatial Queries
