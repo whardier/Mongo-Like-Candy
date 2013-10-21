@@ -36,7 +36,7 @@ Preface
 
 `MongoDB`_ definitely encourages developers to think outside of the relational database box and create some clever query optimization's that allow `MongoDB`_ to operate at its peak performance.  This includes finding ways to reduce table scans, discovering the right index for the job, and using some lesser known optimization's like the `$or`_ logical query operator to do what I have been calling ``Cascading Multi-Clause Queries``.
 
-`MongoDB`_ supports multi-clause queries by way of the `$or`_ logical query operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of extra information in the form of `cursor.explain().clauses`_ which is an ordered list of the sort of output you would expect from `cursor.explain()`_ for each clause of the query.
+Multi-clause queries are done by way of the `$or`_ logical query operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of extra information in the form of `cursor.explain().clauses`_ which is an ordered list of the sort of output you would expect from `cursor.explain()`_ for each clause of the query.
 
 ``Cascading`` refers to organizing each step of a multi-clause query so that certain index regions and table scans are processed in a specific order.  Usage of the `cursor.limit()`_ method allows for the query to exit without processing all the clauses if the limit size is reached. Ideally each clause would have an index associated with it.
 
@@ -72,31 +72,18 @@ Optimization's that benefit from `$or`_:
 Summary
 =======
 
-I inadvertently found out about multi-clause queries examining a well 
-crafted query that I was hopeful would do what I wanted.  I was using 
-or on different values of a location field.  The goal for me was to 
-first query documents with a specific location and then all the 
-surrounding cities in an order I had determined before making the 
-query.
+I inadvertently found out about multi-clause queries while examining a well crafted query that I was feeling incredibly hopeful about.  For this query I was looking to create a single stream of documents by querying different values of a ``location`` field and I ended up using `$or`_ to see how it would react.  The goal for me was to first query documents with a specific location and then all the surrounding cities in an order I had determined before making the query.
 
-To take advantage of this I knew I would need to feed the query an 
-ordered set of locations which I could pregenerate or potentially let 
-the user define.
+To take advantage of this I knew I would need to feed the query an ordered set of locations which I could pregenerate based on my own algorithms based on the application users preferences.
+
+Logically, `$or`_ performed ordered queries where I was wrongly thinking of it as a post-filter for an index scan.
 
 Data
 ====
 
-This article focuses on using a sample stream of geotagged Twitter 
-posts using the `Twitter Streaming API`.  It may not surprise any of 
-you that the JSON output from Twitter can be directly imported into 
-MongoDB using mongoimport and contains valid GeoJSON for direct use 
-with the 2dsphere geospatial index as well as an array of points that 
-works well with the 2d geospatial index.
+This article focuses on using a sample stream of geotagged Twitter posts using the `Twitter Streaming API`.  It may not surprise any of you that the JSON output from Twitter can be directly imported into MongoDB using mongoimport and contains valid GeoJSON for direct use with the 2dsphere geospatial index as well as an array of points that works well with the 2d geospatial index.
 
-Twitter posts make an **excellent** data source to use when testing 
-indexing requirements like multi-lingual text searching, geospatial 
-data, multi-key indexes, and works very well when you simply need a 
-lot of very unique data to play with.
+Twitter posts make an **excellent** data source to use when testing indexing requirements like multi-lingual text searching, geospatial data, multi-key indexes, and works very well when you simply need a lot of very unique data to play with.
 
 Sample Document
 ---------------
