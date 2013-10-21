@@ -9,9 +9,13 @@ Cascading Multi-Clause Queries
 
 ..  _$or: http://docs.mongodb.org/manual/reference/operator/or/
 
+..  _$gte: http://docs.mongodb.org/manual/reference/operator/query/gte/
+
 ..  _cursor.limit(): http://docs.mongodb.org/manual/reference/method/cursor.limit/
 
 ..  _cursor.sort(): http://docs.mongodb.org/manual/reference/method/cursor.sort/
+
+..  _cursor.hint(): http://docs.mongodb.org/manual/reference/method/cursor.hint/
 
 ..  _cursor.skip(): http://docs.mongodb.org/manual/reference/method/cursor.skip/
 
@@ -33,6 +37,10 @@ Cascading Multi-Clause Queries
 
 ..  _hierarchical storage management: http://en.wikipedia.org/wiki/Hierarchical_storage_management
 
+..  _sparse indexes: http://docs.mongodb.org/manual/core/index-sparse/
+
+..  _sparse index: http://docs.mongodb.org/manual/core/index-sparse/
+
 ..  _twitter: http://twitter.com/
 
 ..  _twitter streaming api: https://dev.twitter.com/docs/streaming-apis
@@ -41,12 +49,22 @@ Cascading Multi-Clause Queries
 
 ..  _compound index: http://docs.mongodb.org/manual/core/index-compound
 
+..  _natural order: http://docs.mongodb.org/manual/reference/glossary/#term-natural-order
+
+..  _tag aware sharding: http://docs.mongodb.org/manual/core/tag-aware-sharding/
+
+..  _shard key: http://docs.mongodb.org/manual/core/sharding-shard-key/
+
+..  _geohash: http://en.wikipedia.org/wiki/Geohash
+
+..  _geohashes: http://en.wikipedia.org/wiki/Geohash
+
 Preface
 =======
 
 `MongoDB`_ definitely encourages developers to think outside of the relational database box and create some clever query optimization's that allow `MongoDB`_ to operate at its peak performance.  This includes finding ways to reduce table scans, discovering the right index for the job, and using some lesser known optimization's like the `$or`_ logical query operator to do what I have been calling **Cascading Multi-Clause Queries**.
 
-Multi-clause queries are done by way of the `$or`_ logical query operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of extra information in the form of `cursor.explain().clauses`_ which is an ordered list of query plans that will be executed.
+Multi-clause queries are done by way of the `$or`_ logical query operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of extra information in the form of `cursor.explain().clauses`_ which is an ordered list of query plans per clause that will be executed.  For more information about query plans please see `cursor.explain()`_'s documentation in the official MongoDB documentation where they are summarized as "The query plan is the plan the server uses to find the matches for a query.".
 
 **Cascading** refers to the application level preference of a multi-clause query so that certain index regions and table scans are processed in a specific order.  Furthermore, the application can choose to use the `cursor.limit()`_ method that allows multi-clause queries to exit early without processing all the clauses if the limit is reached.  What a wonderful optimization for large data sets.
 
@@ -55,13 +73,13 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
 ..  code:: javascript
 
     db.inventory.find({
-        '$or': [{
+        "$or": [{
             price: 1.99
         }, {
             sale: true
         }],
         qty: {
-            '$in': [20,
+            "$in": [20,
                 50
             ]
         }
@@ -71,9 +89,9 @@ If there are 100 inventory items with a price of **1.99** that match the **qty**
 
 Optimization's that benefit from `$or`_:
 
-* An index pyramid where more focused sparse and small indexes are queried before others.
+* An series of index scans where more focused `sparse indexes`_ or `compound indexes`_ are queried before others.
 
-* Priority cascading user defined or hash based geo queries without utilizing `2d`_ or `2dsphere`_ indexes.
+* Index Pyramids for hash based value queries and geospatial queries without utilizing `2d`_ or `2dsphere`_ indexes.
 
 * Pseudo-sorting very large volumes of data without requiring using `cursor.sort()`_.
 
@@ -103,13 +121,13 @@ Geographically referenced `Twitter`_ posts contain location information through 
 ..  code:: javascript
 
     db.tweets.findOne({
-        'place.full_name': 'Los Angeles, CA'
+        "place.full_name": "Los Angeles, CA"
     }, {
-        'text': true,
-        'user.screen_name': true,
-        'coordinates': true,
-        'place.full_name': true,
-        'place.country': true
+        "text": true,
+        "user.screen_name": true,
+        "coordinates": true,
+        "place.full_name": true,
+        "place.country": true
     });
     
     {
@@ -137,6 +155,7 @@ The following `compound index`_ is in place for testing purely based on the geog
 
 ..  code:: javascript    
 
+    // place.country_1_place.full_name_1
     db.tweets.ensureIndex({
         "place.country": 1,
         "place.full_name": 1
@@ -145,7 +164,7 @@ The following `compound index`_ is in place for testing purely based on the geog
 The Problem
 ===========
 
-Based on the applicatoin user's preference we want to query all twitter users that have more than 500 followers and have made a post recently from one major city to the next and then eventually the entire country.
+Based on the applications users preference we want to query all twitter users that have more than 500 followers and have made a post recently from one major city to the next and then eventually the entire country.
 
 The user has the following preference:
 
@@ -161,38 +180,40 @@ The user has the following preference:
 
 * and finally simply **United States**
 
+We want the results to return in this order, but not specifically ordered otherwise we would need to create a sort key that matched the users preference.  Eventually we want to be able to use the default `natural order`_ of documents in each clauses related indexes so that the documents relating to **Manhattan, NY** come after **Los Angeles, CA** but are still sorted by another key.
+
 The Solution
 ============
 
 Building a query for that using or is relatively easy since we know exactly what we want to search for.  From the API standpoint the language needs to append dictionary or SON objects to the `$or`_ field in order.  For the following example query we will turn on cursor.explain with **verbose** toggled on.
 
-Since we used `$or`_ we will have a **clauses** array that specifies the query plans being used.
+Since we used `$or`_ we will have a **clauses** array that specifies the clauses and the query plans being used.
 
 ..  code-block :: javascript
     
     db.tweets.find({   
-        '$or': [{       
-            'place.country': 'United States',
-            'place.full_name': 'Los Angeles, CA',
+        "$or": [{       
+            "place.country": "United States",
+            "place.full_name": "Los Angeles, CA",
                
         }, {       
-            'place.country': 'United States',
-            'place.full_name': 'Manhattan, NY',
+            "place.country": "United States",
+            "place.full_name": "Manhattan, NY",
                
         }, {       
-            'place.country': 'United States',
-            'place.full_name': 'Philadelphia, PA',
+            "place.country": "United States",
+            "place.full_name": "Philadelphia, PA",
                
         }, {       
-            'place.country': 'United States',
-            'place.full_name': 'Chicago, IL',
+            "place.country": "United States",
+            "place.full_name": "Chicago, IL",
                
         }, {       
-            'place.country': 'United States',
-            'place.full_name': 'Houston, TX',
+            "place.country": "United States",
+            "place.full_name": "Houston, TX",
                
         }, {       
-            'place.country': 'United States'   
+            "place.country": "United States"   
         }]
     }).explain(verbose = true);
 
@@ -274,36 +295,35 @@ Since we used `$or`_ we will have a **clauses** array that specifies the query p
         "server": "buckaroobanzai:27017"
     }
             
-That's a lot of documents an we are of course dealing with `Twitter`_ so we know it's going to grow like crazy.  Thankfully we can request that the user do some pagination if they want to see all the documents.  The above information shows that **Los Angeles, CA** has **38** tweet documents associated with it and **Manhattan, NY** has **25**.  If the application limits each page to **50** documents per page the cursor would only fetch documents from the first two clauses for the first page.
+That's a lot of documents and since we are working with potentially live `Twitter`_ data we know it's going to grow like crazy.  Thankfully we can request that the user do some pagination if they want to see all the documents.  The above information shows that **Los Angeles, CA** has **38** tweet documents associated with it and **Manhattan, NY** has **25**.  If the application limits each page to **50** documents per page the cursor would only fetch documents from the first two clauses for the first page.
 
 ..  code:: javascript
 
     db.tweets.find({   
-        '$or': [{       
-            'place.country': 'United States',
-            'place.full_name': 'Los Angeles, CA',
+        "$or": [{       
+            "place.country": "United States",
+            "place.full_name": "Los Angeles, CA",
                
         }, {       
-            'place.country': 'United States',
-            'place.full_name': 'Manhattan, NY',
+            "place.country": "United States",
+            "place.full_name": "Manhattan, NY",
                
         }, {       
-            'place.country': 'United States',
-            'place.full_name': 'Philadelphia, PA',
+            "place.country": "United States",
+            "place.full_name": "Philadelphia, PA",
                
         }, {       
-            'place.country': 'United States',
-            'place.full_name': 'Chicago, IL',
+            "place.country": "United States",
+            "place.full_name": "Chicago, IL",
                
         }, {       
-            'place.country': 'United States',
-            'place.full_name': 'Houston, TX',
+            "place.country": "United States",
+            "place.full_name": "Houston, TX",
                
         }, {       
-            'place.country': 'United States'   
+            "place.country": "United States"   
         }]
     }).limit(50).explain(verbose = true);
-
     
     // Shortened and Simplified
     {
@@ -366,120 +386,165 @@ That's a lot of documents an we are of course dealing with `Twitter`_ so we know
         "server" : "buckaroobanzai:27017"
     }
 
-This is right in line with how `hierarchical storage management`_ is 
-done.  If we are clever we can isolate low traffic index ranges to 
-less expensive shard servers and use this solution to only hit those 
-servers if the rest of the shards could not completely satisfy the 
-query.
+I have a lot of appreciation for **millis: 0**.
 
-As previously stated, the user wants to include only documents posted 
-by individuals that have more than 500 followers.  We can do this one 
-of two ways depending on how flexible we want this query.
+This is right in line with how `hierarchical storage management`_ is done.  If this collection were sharded, which it probably should be, we have the opportunity to be clever and isolate low traffic index ranges to less expensive shard servers and use this solution to only hit those servers if the rest of the shards could not completely satisfy the query.  The gotcha is in the `shard key`_ and making sure that each clause defines it explicitely by making sure those fields are part of the query.  Doing so provides an alternative to `tag aware sharding`_ as well as a welcome compliment to it.
+
+As previously stated, the user wants to include only documents posted by individuals that have more than **50** followers.  We can do this one of two ways depending on how flexible we want this query.
 
 ..  code-block :: javascript
 
     db.tweets.find({
-        '$or': [{
-            'place.country': 'United States',
-            'place.full_name': 'Los Angeles, CA',
+        "$or": [{
+            "place.country": "United States",
+            "place.full_name": "Los Angeles, CA",
         }, {
-            'place.country': 'United States',
-            'place.full_name': 'Manhattan, NY',
+            "place.country": "United States",
+            "place.full_name": "Manhattan, NY",
         }, {
-            'place.country': 'United States',
-            'place.full_name': 'Philadelphia, PA',
+            "place.country": "United States",
+            "place.full_name": "Philadelphia, PA",
         }, {
-            'place.country': 'United States',
-            'place.full_name': 'Chicago, IL',
+            "place.country": "United States",
+            "place.full_name": "Chicago, IL",
         }, {
-            'place.country': 'United States',
-            'place.full_name': 'Houston, TX',
+            "place.country": "United States",
+            "place.full_name": "Houston, TX",
         }, {
-            'place.country': 'United States',
+            "place.country": "United States",
         }],
-        'user.followers_count': { '$gte': 500 },
+        "user.followers_count": { "$gte": 500 },
     }).limit(50).explain(verbose = true)
 
 ..  code-block :: javascript
 
     db.tweets.find({
-        '$or': [{
-            'place.country': 'United States',
-            'place.full_name': 'Los Angeles, CA',
-            'user.followers_count': { '$gte': 500 },
+        "$or": [{
+            "place.country": "United States",
+            "place.full_name": "Los Angeles, CA",
+            "user.followers_count": { "$gte": 500 },
         }, {
-            'place.country': 'United States',
-            'place.full_name': 'Manhattan, NY',
-            'user.followers_count': { '$gte': 500 },
+            "place.country": "United States",
+            "place.full_name": "Manhattan, NY",
+            "user.followers_count": { "$gte": 500 },
         }, {
-            'place.country': 'United States',
-            'place.full_name': 'Philadelphia, PA',
-            'user.followers_count': { '$gte': 500 },
+            "place.country": "United States",
+            "place.full_name": "Philadelphia, PA",
+            "user.followers_count": { "$gte": 500 },
         }, {
-            'place.country': 'United States',
-            'place.full_name': 'Chicago, IL',
-            'user.followers_count': { '$gte': 500 },
+            "place.country": "United States",
+            "place.full_name": "Chicago, IL",
+            "user.followers_count": { "$gte": 500 },
         }, {
-            'place.country': 'United States',
-            'place.full_name': 'Houston, TX',
-            'user.followers_count': { '$gte': 500 },
+            "place.country": "United States",
+            "place.full_name": "Houston, TX",
+            "user.followers_count": { "$gte": 500 },
         }, {
-            'place.country': 'United States',
-            'user.followers_count': { '$gte': 500 },
+            "place.country": "United States",
+            "user.followers_count": { "$gte": 500 },
         }],
-    }).limit(500).explain(verbose = true)
+    }).limit(50).explain(verbose = true)
 
-The latter query allows us to change **user.followers_count** to match 
-any limit the user requests.  Perhaps they want to scan the country 
-for any individuals with over 10000 followers.
+The latter query allows us to change **user.followers_count** to match any limit the user requests for each region.  Perhaps they want to scan the country for any individuals with over 10000 followers.
 
-Keep in mind that when want your or operator to be first in a query 
-you should always use SON objects to build your query.  This makes 
-sure that the query document is ordered properly when using a 
-programming language where dictionaries have no ordering, like 
-Python.
+Multi-Index Support
+-------------------
 
-Pagination
-----------
+Each clause can rely on a different indexes or even force a table scan.  There's no method of applying a `cursor.hint()`_ to individual clauses so the magic is all in what fields you want to search on.  Make the server make an optimal assumption as to what index to use.
 
-Without going to far into it.  If you're client side can tell you 
-where it last left off (say.. the middle of **Manhattan, NY**) your 
-client side code can simply leave **Los Angeles, CA** out of the loop.  
-Unfortunately since your clauses aren't individually sorted (see 
-Gotchas_) it can be a bit difficult to pick up where you left off 
-without also knowing how many documents into **Manhattan, NY** the 
-last query got to.
-       
-Geospatial Queries
-------------------
+For instance if you wanted to use a `sparse index`_ in the first clause but wanted to use a `compound index`_ for the rest of them then you would want to specifically query around whatever fields are involved with the index you want to use.
 
-In my article `Geospatial MongoDB using Quadtrees and Geohashes 
-<geospatial-mongodb-using-quadtrees-and-geohashes.rst>` I go over 
-using hashes that narrow down on specific locations the longer the 
-hash string becomes which is known as the precision.  Pulling off a 
-query where I look for all points within a specific location is pretty 
-simple and using the or operator makes it simple to get a roughly 
-distance sorted result set without using 2d or 2dsphere geospatial 
-indexes.
+..  code:: javascript    
 
-Why?  Because 2d_/2dsphere indexes cannot be used as shard keys 
-however geohash and quadtree strings can.
+    // user.screen_name_1
+    db.tweets.ensureIndex({
+        "user.screen_name": 1,
+    }, {
+        "sparse": true
+    });
 
-Lets pull off the following:
+    db.tweets.find({   
+        "$or": [{
+            "user.screen_name": "DoctorWhomz",
+        }, {       
+            "place.country": "United States",
+            "place.full_name": "Houston, TX",
+               
+        }, {       
+            "place.country": "United States"   
+        }]
+    }).explain(verbose = true);
 
-* query a hash the size of a house
-* query the hashes neighbors
-* query a hash the size of a block
-* query the hashes neighbors
+In the example above the following indexes will be used in order:
+
+* **user.screen_name_1** (sparse)
+
+* **place.country_1_place.full_name_1**
+
+* **place.country_1_place.full_name_1**
+
+Sorting
+-------
+
+Using the `natural order`_ of an index seems to be the only obvious way to make each query sorted, therefore a very useful default `compound index`_ can help keep these tweets in order.  Literally.
+
+..  code:: javascript    
+
+    // place.country_1_place.full_name_1_user.screen_name_1
+    db.tweets.ensureIndex({
+        "place.country": 1,
+        "place.full_name": 1,
+        "user.screen_name": 1
+    });
+
+Remove **place.country_1_place.full_name_1** or keep it and simply require that **user.screen_name** be `$gte`_ the lowest possible string value and the query plans will target this index for use. Any query plan that chooses this index will return documents in index ascending order starting with **place.country**, followed by **place.full_name**, and finally **user.screen_name**.
+
+Pagination `cursor.skip()`_ Optimization
+----------------------------------------
+
+This method offers a somewhat unique opportunity to leave out the clause for **Los Angeles, CA** if the application notices there are no more **Los Angeles, CA** oriented documents in the result set.  With a little counting on the application side the `cursor.skip()`_ method can be reduced by how many documents existed in a clause that is going to be removed and the overall query benefits by not having to skip through clauses that are no longer valid.
+
+Index Pyramids
+--------------
+
+Index pyramids refer to the ability to query for more specific data on a specific field and then further expand the boundaries of the query.  This technique tuned toward using a specific field to help quickly get at relevant information and then eventually scan a larger index range to finish if more results are requested.
+
+For example lets look for all `Twitter`_ posts that are created by the **user.screen_name** "whardier" followed values starting with "whard" and eventually just "w":
 
 ..  code:: javascript
 
     db.tweets.find({
-        '$or': [{
-            'geohash': /^bdvkjqwr/,
+        "$or": [{
+            "user.screen_name": { "whardier" },
         }, {
-            'geohash': {
-                '$in': [
+            "user.screen_name": { /^whard/ },
+        }, {
+            "user.screen_name": { /^w/ },
+        }],
+    })
+
+The **user.screen_name_1** index will be used 3 different times in this query.
+
+As for geospatial pyramids, `Geohashes`_ are pyramids defining geospatial areas. The longer the hash the narrower the area relative to the first parts of the hash.
+
+Currently `MongoDB`_ sharding does not allow `2d`_ or `2dsphere`_ hashes to be part of a `shard key`_ and geospatially aware hashes like `Geohashes`_ can help compensate for this, as well as offer multi-clause area based queries.
+
+Lets pull off the following:
+
+* Query a hash the size of a house
+
+* Query the hashes direct neighbors
+
+* Query a grandparent hash
+
+..  code:: javascript
+
+    db.tweets.find({
+        "$or": [{
+            "geohash": /^bdvkjqwr/,
+        }, {
+            "geohash": {
+                "$in": [
                     /^bdvkjqy0/,
                     /^bdvkjqy2/,
                     /^bdvkjqy8/,
@@ -490,54 +555,8 @@ Lets pull off the following:
                     /^bdvkjqww/,
                 ]
             }
-        }, {
-            'geohash': /^bdvkjq/,
-        }, {
-            'geohash': {
-                '$in': [
-                    /^bdvkjp/,
-                    /^bdvkjr/,
-                    /^bdvkjx/,
-                    /^bdvkjn/,
-                    /^bdvkjw/,
-                    /^bdvkjj/,
-                    /^bdvkjm/,
-                    /^bdvkjt/,
-                ]
-            }
+        }, { 
+            "geohash": /^bdvkj/ 
         }],
-    }).limit(500).explain(verbose = true)
-
-Gotchas
-=======
-
-There are of course a few gotchas with using this solution.
-
-No more `cursor.sort()`_
-------------------------
-
-Go ahead and try it.  Instead of processing each or clause and 
-returning sorted chunks you will instead process the index directly 
-(hopefully) and filter the results through the or array using a 
-post-processor.
-
-You have to do more client side code
-------------------------------------
-
-I couldn't be happier about that.  Making specific use of a very 
-simple database solution (comparatively speaking) is going to 
-eventually require some pre and post processing by the client if you 
-want to do anything that isn't directly supported.  Thankfully 
-MongoDB is very **streamy** and processing a cursor in most languages 
-is very simple.
-
-Extra Info
-==========
-
-Also check out `Interim Tables F.T.W. <interim-tables-ftw.rst>` to see 
-how the result set for or based cascading multi-clause queries can be 
-stored into an interim table and a secondary query can be done against 
-the data.  Both solutions are a killer combination when it comes to 
-keeping index size down and creating simple and straight forward data 
-sets highly searchable and easily paginated.
+    })
 

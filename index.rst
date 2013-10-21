@@ -5,10 +5,9 @@ Mongo Like Candy
 Articles:
 
 ..  toctree::
-    :glob:
     :maxdepth: 1
 
-    articles/*
+    articles/cascading-multi-clause-queries.rst
 
 
 Indices and tables
