@@ -50,7 +50,7 @@ Multi-clause queries are done by way of the `$or`_ logical query operator.  When
 
 Here is a 2 clause query from the official `MongoDB documentation <http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where ``price`` is part of the first query clause and ``sale`` is part of the second while ``qty`` further filters the results of each:
 
-..  code :: javascript
+..  code:: javascript
 
     > db.inventory.find({
         $or: [{
@@ -98,7 +98,7 @@ Sample `Twitter`_ Post
 
 Geographically referenced `Twitter`_ posts contain location information through the ``place`` field which focuses on the nearest city and state information for the ``coordinates`` field that defines where on earth the post was approximately made from.
 
-..  code :: javascript
+..  code:: javascript
 
     > db.tweets.findOne({
         'place.full_name': 'Los Angeles, CA'
@@ -131,14 +131,9 @@ Geographically referenced `Twitter`_ posts contain location information through 
 Indexes
 -------
 
-The following compound index is in place for testing purely based on 
-geocoded information within each post.  Depending on the amount of 
-data it may be a good idea to extend this index to another field that 
-will be used heavily by the application.  For now we will keep it 
-simple and use cursor.explain later on to see how much scanning is 
-being done to each index.
+The following compound index is in place for testing purely based on geocoded information within each post.  Depending on the amount of data it may be a good idea to extend this index to another field that will be used heavily by the application.  For now we will keep it simple and use cursor.explain later on to see how much scanning is being done to each index.
 
-..  code :: javascript    
+..  code:: javascript    
 
     db.tweets.ensureIndex({
         "place.country": 1,
@@ -351,7 +346,7 @@ and ``Manhattan, NY`` has 246.  If the user set their document limit
 to **500** they would only hit the first two clauses and of course the 
 query would be nice and fast.
 
-..  code :: javascript
+..  code:: javascript
 
     {
         "clauses" : [
@@ -511,7 +506,7 @@ Lets pull off the following:
 * query a hash the size of a block
 * query the hashes neighbors
 
-..  code :: javascript
+..  code:: javascript
 
     db.tweets.find({
         '$or': [{
