@@ -196,6 +196,8 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
         }]
     }).explain(verbose = true);
 
+    // Shortened and Simplified
+
     {
         "clauses": [{
             "allPlans": [{
@@ -234,7 +236,7 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
                 }
             }]
         }, {
-        // ...
+        /* ... */
         }, {
             "allPlans": [{
                 "cursor": "BtreeCursor place.country_1_place.full_name_1",
@@ -265,9 +267,6 @@ to **500** they would only hit the first two clauses and of course the
 query would be nice and fast.
 
 ..  code:: javascript
-
-
-
 
     {
         "clauses" : [
