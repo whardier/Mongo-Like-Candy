@@ -197,11 +197,13 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
     }).explain(verbose = true);
 
     // Shortened and Simplified
-
     {
         "clauses": [{
             "allPlans": [{
                 "cursor": "BtreeCursor place.country_1_place.full_name_1",
+                "n": 38,
+                "nscannedObjects": 38,
+                "nscanned": 38,
                 "indexBounds": {
                     "place.country": [
                         [
@@ -220,6 +222,9 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
         }, {
             "allPlans": [{
                 "cursor": "BtreeCursor place.country_1_place.full_name_1",
+                "n": 25,
+                "nscannedObjects": 25,
+                "nscanned": 25,
                 "indexBounds": {
                     "place.country": [
                         [
@@ -236,10 +241,13 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
                 }
             }]
         }, {
-        /* ... */
+            /* ... */
         }, {
             "allPlans": [{
                 "cursor": "BtreeCursor place.country_1_place.full_name_1",
+                "n": 2070,
+                "nscannedObjects": 2188,
+                "nscanned": 2188,
                 "indexBounds": {
                     "place.country": [
                         [
@@ -257,15 +265,15 @@ Since we used `$or`_ we will have a ``clauses`` array that specifies the query p
                 }
             }]
         }],
-        "n" : 2188,
-        "nscannedObjects" : 2306,
-        "nscanned" : 2306,
-        "nscannedObjectsAllPlans" : 2306,
-        "nscannedAllPlans" : 2306,
-        "millis" : 76,
-        "server" : "buckaroobanzai:27017"
+        "n": 2188,
+        "nscannedObjects": 2306,
+        "nscanned": 2306,
+        "nscannedObjectsAllPlans": 2306,
+        "nscannedAllPlans": 2306,
+        "millis": 76,
+        "server": "buckaroobanzai:27017"
     }
-        
+            
 That's a lot of documents!, thankfully we can request that the user do 
 some pagination or fetch the cursor in batches.  The above information 
 shows that ``Los Angeles, CA`` has 265 documents associated with it 
