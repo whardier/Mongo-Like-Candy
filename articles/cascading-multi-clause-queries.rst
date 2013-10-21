@@ -52,7 +52,7 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
 
 ..  code :: javascript
 
-    db.inventory.find({
+    > db.inventory.find({
         $or: [{
             price: 1.99
         }, {
@@ -100,7 +100,33 @@ Geographically referenced `Twitter`_ posts contain location information through 
 
 ..  code :: javascript
 
-
+    > db.tweets.findOne({
+        'place.full_name': 'Los Angeles, CA'
+    }, {
+        'text': true,
+        'user.screen_name': true,
+        'coordinates': true,
+        'place.full_name': true,
+        'place.country': true
+    })
+    
+    {
+        "_id": ObjectId("52647c32b7c03befed384f00"),
+        "text": "Time is going by so fast.",
+        "user": {
+            "screen_name": "Rudeboy_La"
+        },
+        "coordinates": {
+            "type": "Point",
+            "coordinates": [-118.18497793,
+                34.08546991
+            ]
+        },
+        "place": {
+            "full_name": "Los Angeles, CA",
+            "country": "United States"
+        }
+    }
         
 Indexes
 -------
@@ -114,31 +140,10 @@ being done to each index.
 
 ..  code :: javascript    
 
-    > db.tweets.findOne({
-        'place.full_name': 'Los Angeles, CA'
-    }, {
-        'text': true,
-        'user.screen_name': true,
-        'coordinates': true,
-        'place.full_name': true
-    })
-    
-    {
-        "_id": ObjectId("52647c32b7c03befed384f00"),
-        "text": "Time is going by so fast.",
-        "user": {
-            "screen_name": "LaMrManMan"
-        },
-        "coordinates": {
-            "type": "Point",
-            "coordinates": [-118.18497793,
-                34.08546991
-            ]
-        },
-        "place": {
-            "full_name": "Los Angeles, CA"
-        }
-    }
+    db.tweets.ensureIndex({
+        "place.country": 1,
+        "place.full_name": 1
+    });
     
 The Problem
 ===========
