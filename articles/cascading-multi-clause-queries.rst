@@ -114,7 +114,7 @@ Geographically referenced `Twitter`_ posts contain location information through 
         "_id": ObjectId("52647c32b7c03befed384f00"),
         "text": "Time is going by so fast.",
         "user": {
-            "screen_name": "Rudeboy_La"
+            "screen_name": "DoctorWhomz"
         },
         "coordinates": {
             "type": "Point",
@@ -131,7 +131,7 @@ Geographically referenced `Twitter`_ posts contain location information through 
 Indexes
 -------
 
-The following compound index is in place for testing purely based on geocoded information within each post.  Depending on the amount of data it may be a good idea to extend this index to another field that will be used heavily by the application.  For now we will keep it simple and use cursor.explain later on to see how much scanning is being done to each index.
+The following `compound index`_ is in place for testing purely based on the geographical information within each post.  Depending on the amount of data it may be a good idea to extend this index to another field that will be used heavily by the application.  For now we will keep it simple and use `cursor.explain()`_ later on to see how much scanning is being done to each index.
 
 ..  code:: javascript    
 
