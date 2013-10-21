@@ -63,7 +63,7 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
                 50
             ]
         }
-    })
+    });
 
 If there are 100 inventory items with a price of ``1.99`` that match the ``qty`` filter and we limit the overall query to 100 documents then the ``price`` clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how ``cascading`` is being put to use by returning documents in clause processed order which turns out to be an amazing optimization for developers interested in implementing priority based queries or `hierarchical storage management`_ may be required.
 
@@ -108,7 +108,7 @@ Geographically referenced `Twitter`_ posts contain location information through 
         'coordinates': true,
         'place.full_name': true,
         'place.country': true
-    })
+    });
     
     {
         "_id": ObjectId("52647c32b7c03befed384f00"),
@@ -135,7 +135,7 @@ The following compound index is in place for testing purely based on geocoded in
 
 ..  code:: javascript    
 
-    db.tweets.ensureIndex({
+    > db.tweets.ensureIndex({
         "place.country": 1,
         "place.full_name": 1
     });
