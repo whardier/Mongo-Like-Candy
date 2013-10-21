@@ -104,7 +104,7 @@ html_theme_path = ['_themes/sphinx_rtd_theme']
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-#html_title = None
+html_title = 'Mongo Like Candy'
 
 # A shorter title for the navigation bar.  Default is the same as html_title.
 #html_short_title = None
@@ -184,7 +184,7 @@ latex_elements = {
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'MongoLikeCandy.tex', u'Mongo Like Candy Documentation',
+  ('index', 'MongoLikeCandy.tex', u'Mongo Like Candy',
    u'Shane R. Spencer', 'manual'),
 ]
 
@@ -214,7 +214,7 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'mongolikecandy', u'Mongo Like Candy Documentation',
+    ('index', 'mongolikecandy', u'Mongo Like Candy',
      [u'Shane R. Spencer'], 1)
 ]
 
@@ -228,7 +228,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'MongoLikeCandy', u'Mongo Like Candy Documentation',
+  ('index', 'MongoLikeCandy', u'Mongo Like Candy',
    u'Shane R. Spencer', 'MongoLikeCandy', 'One line description of project.',
    'Miscellaneous'),
 ]
