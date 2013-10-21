@@ -46,9 +46,9 @@ Preface
 
 `MongoDB`_ definitely encourages developers to think outside of the relational database box and create some clever query optimization's that allow `MongoDB`_ to operate at its peak performance.  This includes finding ways to reduce table scans, discovering the right index for the job, and using some lesser known optimization's like the `$or`_ logical query operator to do what I have been calling ``Cascading Multi-Clause Queries``.
 
-Multi-clause queries are done by way of the `$or`_ logical query operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of extra information in the form of `cursor.explain().clauses`_ which is an ordered list of the sort of output you would expect from `cursor.explain()`_ for each clause of the query.
+Multi-clause queries are done by way of the `$or`_ logical query operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of extra information in the form of `cursor.explain().clauses`_ which is an ordered list of query plans that will be executed.
 
-``Cascading`` refers to organizing each step of a multi-clause query so that certain index regions and table scans are processed in a specific order.  Usage of the `cursor.limit()`_ method allows for the query to exit without processing all the clauses if the limit size is reached. Ideally each clause would have an index associated with it.
+``Cascading`` refers to the application level preference of a multi-clause query so that certain index regions and table scans are processed in a specific order.  Furthermore, the application can choose to use the `cursor.limit()`_ method that allows multi-clause queries to exit early without processing all the clauses if the limit is reached.  What a wonderful optimization for large data sets.
 
 Here is a 2 clause query from the official `MongoDB documentation <http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where ``price`` is part of the first query clause and ``sale`` is part of the second while ``qty`` further filters the results of each:
 
@@ -164,182 +164,174 @@ The user has the following preference:
 The Solution
 ============
 
-Building a query for that using or is relatively easy since we know 
-exactly what we want to search for.  From the API standpoint the 
-language needs to append dictionary or SON objects to the `$or`_
-field in order.  For the following example query we will turn on 
-cursor.explain with ``verbose`` toggled on.
+Building a query for that using or is relatively easy since we know exactly what we want to search for.  From the API standpoint the language needs to append dictionary or SON objects to the `$or`_ field in order.  For the following example query we will turn on cursor.explain with ``verbose`` toggled on.
+
+Since we used `$or`_ we will have a ``clauses`` array that specifies the query plans being used.
 
 ..  code-block :: javascript
-
-    db.tweets.find({
-        '$or': [{
+    
+    db.tweets.find({   
+        '$or': [{       
             'place.country': 'United States',
             'place.full_name': 'Los Angeles, CA',
-        }, {
+               
+        }, {       
             'place.country': 'United States',
             'place.full_name': 'Manhattan, NY',
-        }, {
+               
+        }, {       
             'place.country': 'United States',
             'place.full_name': 'Philadelphia, PA',
-        }, {
+               
+        }, {       
             'place.country': 'United States',
             'place.full_name': 'Chicago, IL',
-        }, {
+               
+        }, {       
             'place.country': 'United States',
             'place.full_name': 'Houston, TX',
-        }, {
-            'place.country': 'United States',
+               
+        }, {       
+            'place.country': 'United States'   
         }]
-    }).explain(verbose = true)
-
-
-Since we used or we have a ``clauses`` array that specifies the query 
-plans being used.  Each clause should look familiar to users that are 
-experiences with the output of cursor.explain.
-
-..  code-block :: javascript
-
-    // Simplified
+    }).explain(verbose = true);
     
     {
-        "clauses" : [
-            {
-                "cursor" : "BtreeCursor place.country_1_place.full_name_1",
-                "n" : 265,
-                "nscannedObjects" : 265,
-                "nscanned" : 265,
-                "millis" : 2,
-                "indexBounds" : {
-                    "place.country" : [
+        "clauses": [{
+            "allPlans": [{
+                "cursor": "BtreeCursor place.country_1_place.full_name_1",
+                "n": 38,
+                "nscannedObjects": 38,
+                "nscanned": 38,
+                "indexBounds": {
+                    "place.country": [
                         [
                             "United States",
                             "United States"
                         ]
                     ],
-                    "place.full_name" : [
+                    "place.full_name": [
                         [
                             "Los Angeles, CA",
                             "Los Angeles, CA"
                         ]
                     ]
-                },
-            },
-            {
-                "cursor" : "BtreeCursor place.country_1_place.full_name_1",
-                "n" : 246,
-                "nscannedObjects" : 246,
-                "nscanned" : 246,
-                "millis" : 11,
-                "indexBounds" : {
-                    "place.country" : [
+                }
+            }]
+        }, {
+            "allPlans": [{
+                "cursor": "BtreeCursor place.country_1_place.full_name_1",
+                "n": 25,
+                "nscannedObjects": 25,
+                "nscanned": 25,
+                "indexBounds": {
+                    "place.country": [
                         [
                             "United States",
                             "United States"
                         ]
                     ],
-                    "place.full_name" : [
+                    "place.full_name": [
                         [
                             "Manhattan, NY",
                             "Manhattan, NY"
                         ]
                     ]
-                },
-            },
-            {
-                "cursor" : "BtreeCursor place.country_1_place.full_name_1",
-                "n" : 202,
-                "nscannedObjects" : 202,
-                "nscanned" : 202,
-                "millis" : 10,
-                "indexBounds" : {
-                    "place.country" : [
+                }
+            }]
+        }, {
+            "allPlans": [{
+                "cursor": "BtreeCursor place.country_1_place.full_name_1",
+                "n": 17,
+                "nscannedObjects": 17,
+                "nscanned": 17,
+                "indexBounds": {
+                    "place.country": [
                         [
                             "United States",
                             "United States"
                         ]
                     ],
-                    "place.full_name" : [
+                    "place.full_name": [
                         [
                             "Philadelphia, PA",
                             "Philadelphia, PA"
                         ]
                     ]
-                },
-            },
-            {
-                "cursor" : "BtreeCursor place.country_1_place.full_name_1",
-                "n" : 168,
-                "nscannedObjects" : 168,
-                "nscanned" : 168,
-                "millis" : 5,
-                "indexBounds" : {
-                    "place.country" : [
+                }
+            }]
+        }, {
+            "allPlans": [{
+                "cursor": "BtreeCursor place.country_1_place.full_name_1",
+                "n": 22,
+                "nscannedObjects": 22,
+                "nscanned": 22,
+                "indexBounds": {
+                    "place.country": [
                         [
                             "United States",
                             "United States"
                         ]
                     ],
-                    "place.full_name" : [
+                    "place.full_name": [
                         [
                             "Chicago, IL",
                             "Chicago, IL"
                         ]
                     ]
-                },
-            },
-            {
-                "cursor" : "BtreeCursor place.country_1_place.full_name_1",
-                "n" : 148,
-                "nscannedObjects" : 148,
-                "nscanned" : 148,
-                "millis" : 6,
-                "indexBounds" : {
-                    "place.country" : [
+                }
+            }]
+        }, {
+            "allPlans": [{
+                "cursor": "BtreeCursor place.country_1_place.full_name_1",
+                "n": 16,
+                "nscannedObjects": 16,
+                "nscanned": 16,
+                "indexBounds": {
+                    "place.country": [
                         [
                             "United States",
                             "United States"
                         ]
                     ],
-                    "place.full_name" : [
+                    "place.full_name": [
                         [
                             "Houston, TX",
                             "Houston, TX"
                         ]
                     ]
-                },
-            },
-            {
-                "cursor" : "BtreeCursor place.country_1_place.full_name_1",
-                "n" : 17906,
-                "nscannedObjects" : 18935,
-                "nscanned" : 18935,
-                "millis" : 884,
-                "indexBounds" : {
-                    "place.country" : [
+                }
+            }]
+        }, {
+            "allPlans": [{
+                "cursor": "BtreeCursor place.country_1_place.full_name_1",
+                "n": 2070,
+                "nscannedObjects": 2188,
+                "nscanned": 2188,
+                "indexBounds": {
+                    "place.country": [
                         [
                             "United States",
                             "United States"
                         ]
                     ],
-                    "place.full_name" : [
-                        [
-                            {
-                                "$minElement" : 1
-                            },
-                            {
-                                "$maxElement" : 1
-                            }
-                        ]
+                    "place.full_name": [
+                        [{
+                            "$minElement": 1
+                        }, {
+                            "$maxElement": 1
+                        }]
                     ]
-                },
-            }
-        ],
-        "n" : 18935,
-        "nscannedObjects" : 19964,
-        "nscanned" : 19964,
-        "millis" : 920,
-        "server" : "buckaroobanzai:27017"
+                }
+            }]
+        }],
+        "n": 2188,
+        "nscannedObjects": 2306,
+        "nscanned": 2306,
+        "nscannedObjectsAllPlans": 2306,
+        "nscannedAllPlans": 2306,
+        "millis": 76,
+        "server": "buckaroobanzai:27017"
     }
     
 That's a lot of documents!, thankfully we can request that the user do 
@@ -351,6 +343,9 @@ query would be nice and fast.
 
 ..  code:: javascript
 
+
+
+
     {
         "clauses" : [
             {
@@ -371,6 +366,8 @@ query would be nice and fast.
                             "Los Angeles, CA",
                             "Los Angeles, CA"
                         ]
+
+
                     ]
                 },
             },
