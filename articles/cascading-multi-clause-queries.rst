@@ -72,7 +72,7 @@ Multi-clause queries are done by way of the `$or`_ logical query operator.  When
 
 Here is a 2 clause query from the official `MongoDB documentation <http://docs.mongodb.org/manual/reference/operator/query/or/#op._S_or>`_ where **price** is part of the first query clause and **sale** is part of the second while **qty** further filters the results of each:
 
-..  code:: javascript
+..  code-block :: javascript
 
     db.inventory.find({
         "$or": [{
@@ -155,7 +155,7 @@ Indexes
 
 The following `compound index`_ is in place for testing purely based on the geographical information within each post.  Depending on the amount of data it may be a good idea to extend this index to another field that will be used heavily by the application.  For now we will keep it simple and use `cursor.explain()`_ later on to see how much scanning is being done to each index.
 
-..  code:: javascript    
+..  code-block :: javascript    
 
     // place.country_1_place.full_name_1
     db.tweets.ensureIndex({
@@ -299,7 +299,7 @@ Since we used `$or`_ we will have a **clauses** array that specifies the clauses
             
 That's a lot of documents and since we are working with potentially live `Twitter`_ data we know it's going to grow like crazy.  Thankfully we can request that the user do some pagination if they want to see all the documents.  The above information shows that **Los Angeles, CA** has **38** tweet documents associated with it and **Manhattan, NY** has **25**.  If the application limits each page to **50** documents per page the cursor would only fetch documents from the first two clauses for the first page.
 
-..  code:: javascript
+..  code-block :: javascript
 
     db.tweets.find({   
         "$or": [{       
@@ -456,7 +456,7 @@ Each clause can rely on a different indexes or even force a table scan.  There's
 
 For instance if you wanted to use a `sparse index`_ in the first clause but wanted to use a `compound index`_ for the rest of them then you would want to specifically query around whatever fields are involved with the index you want to use.
 
-..  code:: javascript    
+..  code-block :: javascript    
 
     // user.screen_name_1
     db.tweets.ensureIndex({
@@ -490,7 +490,7 @@ Sorting
 
 Using the `natural order`_ of an index seems to be the only obvious way to make each query sorted, therefore a very useful default `compound index`_ can help keep these tweets in order.  Literally.
 
-..  code:: javascript    
+..  code-block :: javascript    
 
     // place.country_1_place.full_name_1_user.screen_name_1
     db.tweets.ensureIndex({
@@ -513,7 +513,7 @@ Index pyramids refer to the ability to query for more specific data on a specifi
 
 For example lets look for all `Twitter`_ posts that are created by the **user.screen_name** "whardier" followed values starting with "whard" and eventually just "w":
 
-..  code:: javascript
+..  code-block :: javascript
 
     db.tweets.find({
         "$or": [{
@@ -539,7 +539,7 @@ Lets pull off the following:
 
 * Query a grandparent hash
 
-..  code:: javascript
+..  code-block :: javascript
 
     db.tweets.find({
         "$or": [{
