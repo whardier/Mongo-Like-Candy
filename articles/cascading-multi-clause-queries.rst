@@ -61,12 +61,12 @@ Cascading Multi-Clause Queries
 
 ..  _geohashes: http://en.wikipedia.org/wiki/Geohash
 
+..  _quadtrees: http://en.wikipedia.org/wiki/Quadtree
+
 Preface
 =======
 
-`MongoDB`_ definitely encourages developers to think outside of the relational database box and create some clever query optimization's that allow `MongoDB`_ to operate at its peak performance.  This includes finding ways to reduce table scans, discovering the right index for the job, and using some lesser known optimization's like the `$or`_ logical query operator to do what I have been calling **Cascading Multi-Clause Queries**.
-
-Multi-clause queries are done by way of the `$or`_ logical query operator.  When using `$or`_ on a query `cursor.explain()`_ returns a bit of extra information in the form of `cursor.explain().clauses`_ which is an ordered list of query plans per clause that will be executed.  For more information about query plans please see `cursor.explain()`_'s documentation in the official `MongoDB`_ documentation where they are summarized as "The query plan is the plan the server uses to find the matches for a query.".
+In `MongoDB`_ multi-clause queries are done by way of the `$or`_ logical query operator.
 
 **Cascading** refers to the application level preference of a multi-clause query so that certain index regions and table scans are processed in a specific order.  Furthermore, the application can choose to use the `cursor.limit()`_ method that allows multi-clause queries to exit early without processing all the clauses if the limit is reached.  What a wonderful optimization for large data sets.
 
@@ -89,7 +89,7 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
 
 If there are **100** inventory items with a price of **1.99** that match the **qty** filter and we limit the overall query to **100** documents then the **price** clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how **cascading** is being put to use by returning documents in clause processed order which turns out to be an amazing optimization for developers interested in implementing priority based queries and where `hierarchical storage management`_ may be required.
 
-Optimization's that benefit from `$or`_:
+optimizations that benefit from `$or`_:
 
 * A series of index scans where more focused `sparse indexes`_ or `compound indexes`_ are queried before others.
 
@@ -111,9 +111,7 @@ Logically, `$or`_ performed multiple queries in order where I was wrongly thinki
 Data
 ====
 
-This article focuses on using a sample stream of geographically referenced Twitter posts using the `Twitter Streaming API`_.  It may not surprise any of you that the `JSON`_ output from `Twitter`_ can be directly imported into `MongoDB`_ using `mongoimport`_ and contains valid `GeoJSON`_ for direct use with the `2dsphere`_ geospatial index as well as an array of points that works well with the `2d`_ geospatial index.
-
-`Twitter`_ posts make an **excellent** data source to use when testing indexing requirements like multi-lingual text searching, geospatial data, `compound indexes`_, and works very well when you simply need a lot of very unique data to play with.
+This article focuses on using a sample stream of geographically referenced Twitter posts using the `Twitter Streaming API`_ which is a streaming JSON feed that easily imports into `MongoDB`_.
 
 Sample `Twitter`_ Post
 ----------------------
@@ -153,7 +151,7 @@ Geographically referenced `Twitter`_ posts contain location information through 
 Indexes
 -------
 
-The following `compound index`_ is in place for testing purely based on the geographical information within each post.  Depending on the amount of data it may be a good idea to extend this index to another field that will be used heavily by the application.  For now we will keep it simple and use `cursor.explain()`_ later on to see how much scanning is being done to each index.
+The following `compound index`_ is in place for test queries that will be looking at the geographic information within each post.
 
 ..  code-block :: javascript    
 
@@ -182,12 +180,10 @@ The user has the following preference:
 
 * and finally simply **United States**
 
-We want the results to return in this order, but not specifically ordered otherwise we would need to create a sort key that matched the users preference.  Eventually we want to be able to use the default `natural order`_ of documents in each clauses related indexes so that the documents relating to **Manhattan, NY** come after **Los Angeles, CA** but are still sorted by another key.
-
 The Solution
 ============
 
-Building a query for that using or is relatively easy since we know exactly what we want to search for.  From the API standpoint the language needs to append dictionary or SON objects to the `$or`_ field in order.  For the following example query we will turn on cursor.explain with **verbose** toggled on.
+Building a query for that using `$or`_ is relatively easy since we know exactly what we want to search for.  From the API standpoint the language needs to append dictionary or SON objects to the `$or`_ field in order.  For the following example query we will turn on cursor.explain with **verbose** toggled on.
 
 Since we used `$or`_ we will have a **clauses** array that specifies the clauses and the query plans being used.
 
@@ -390,9 +386,9 @@ That's a lot of documents and since we are working with potentially live `Twitte
 
 I have a lot of appreciation for **millis: 0**.
 
-This is right in line with how `hierarchical storage management`_ is done.  If this collection were sharded, which it probably should be, we have the opportunity to be clever and isolate low traffic index ranges to less expensive shard servers and use this solution to only hit those servers if the rest of the shards could not completely satisfy the query.  The gotcha is in the `shard key`_ and making sure that each clause defines it explicitely by making sure those fields are part of the query.  Doing so provides an alternative to `tag aware sharding`_ as well as a welcome compliment to it.
+This is right in line with how `hierarchical storage management`_ is done.  If this collection were sharded, which it probably should be, we have the opportunity to be clever and isolate low traffic index ranges to less expensive shard servers and use this solution to only hit those servers if the rest of the shards could not completely satisfy the query.  The gotcha is in the `shard key`_ and making sure that each clause defines it explicitely by making sure those fields are part of the query.  Doing so provides an alternative to `tag aware sharding`_ as well as a welcome complement to it.
 
-As previously stated, the user wants to include only documents posted by individuals that have more than **50** followers.  We can do this one of two ways depending on how flexible we want this query.
+As previously stated, the user wants to include only documents posted by individuals that have more than **500** followers.  We can do this one of two ways depending on how flexible we want this query.
 
 ..  code-block :: javascript
 
@@ -509,7 +505,7 @@ This method offers a somewhat unique opportunity to leave out the clause for **L
 Index Pyramids
 --------------
 
-Index pyramids refer to the ability to query for more specific data on a specific field and then further expand the boundaries of the query.  This technique tuned toward using a specific field to help quickly get at relevant information and then eventually scan a larger index range to finish if more results are requested.
+Index pyramids are indexes designed to query for more specific data on a specific field and then further expand the boundaries through partial matching or reducing the query fields in a `compound index`_.
 
 For example lets look for all `Twitter`_ posts that are created by the **user.screen_name** "whardier" followed values starting with "whard" and eventually just "w":
 
@@ -525,40 +521,12 @@ For example lets look for all `Twitter`_ posts that are created by the **user.sc
         }],
     })
 
-The **user.screen_name_1** index will be used 3 different times in this query.
+The **user.screen_name_1** index will be used 3 different times in this query.  Each clause will yield a broader set of information.
 
-As for geospatial pyramids, `Geohashes`_ are pyramids defining geospatial areas. The longer the hash the narrower the area relative to the first parts of the hash.
+This technique is very useful when combined with `Geohashes`_ and `Quadtrees`_ as regular string fields to offer fast spatially aware area and radius based queries.
 
-Currently `MongoDB`_ sharding does not allow `2d`_ or `2dsphere`_ hashes to be part of a `shard key`_ and geospatially aware hashes like `Geohashes`_ can help compensate for this, as well as offer multi-clause area based queries.
+Conclusion
+==========
 
-Lets pull off the following:
-
-* Query a hash the size of a house
-
-* Query the hashes direct neighbors
-
-* Query a grandparent hash
-
-..  code-block :: javascript
-
-    db.tweets.find({
-        "$or": [{
-            "geohash": /^bdvkjqwr/,
-        }, {
-            "geohash": {
-                "$in": [
-                    /^bdvkjqy0/,
-                    /^bdvkjqy2/,
-                    /^bdvkjqy8/,
-                    /^bdvkjqwp/,
-                    /^bdvkjqwx/,
-                    /^bdvkjqwn/,
-                    /^bdvkjqwq/,
-                    /^bdvkjqww/,
-                ]
-            }
-        }, { 
-            "geohash": /^bdvkj/ 
-        }],
-    })
+`MongoDB`_ definitely encourages developers to think outside of the relational database box and create some clever query optimizations that allow `MongoDB`_ to operate at its peak performance.  This includes finding ways to reduce table scans, discovering the right index for the job, and using some lesser known optimizations like the `$or`_ logical query operator to do what I have been calling **Cascading Multi-Clause Queries**.
 
