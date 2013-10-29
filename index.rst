@@ -2,9 +2,11 @@
 Mongo Like Candy
 ================
 
-Articles:
+Articles
+--------
 
 ..  toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
-    articles
+    articles/cascading-multi-clause-queries.rst
+
