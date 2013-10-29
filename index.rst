@@ -11,6 +11,7 @@ Articles
 ========
 
 ..  toctree::
+    :titlesonly:
     :glob:
 
     articles/*
