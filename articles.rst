@@ -3,6 +3,6 @@ Articles
 ========
 
 ..  toctree::
-    :maxdepth: 1
+    :glob:
 
-    articles/cascading-multi-clause-queries.rst
+    articles/*

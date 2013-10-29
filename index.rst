@@ -2,6 +2,11 @@
 Mongo Like Candy
 ================
 
+..  toctree::
+    :hidden:
+
+    articles
+
 Articles
 --------
 
