@@ -11,14 +11,6 @@ Articles
 ========
 
 ..  toctree::
-    :hidden:
+    :glob:
 
-    articles
-
-Tips and Tricks
----------------
-
-..  toctree::
-    :titlesonly:
-
-    articles/cascading-multi-clause-queries
+    articles/*
