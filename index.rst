@@ -2,8 +2,18 @@
 Mongo Like Candy
 ================
 
+About
+=====
+
+...
+
 Articles
 ========
+
+..  toctree::
+    :hidden:
+
+    articles
 
 Tips and Tricks
 ---------------
