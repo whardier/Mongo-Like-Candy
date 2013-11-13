@@ -83,7 +83,7 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
 
 If there are **100** inventory items with a price of **1.99** that match the **qty** filter and we limit the overall query to **100** documents then the **price** clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how **cascading** is being put to use by returning documents in clause processed order.
 
-optimizations that benefit from `$or`_:
+Optimizations that benefit from `$or`_ might include:
 
 * A series of index scans where more focused `sparse indexes`_ or `compound indexes`_ are queried before others.
 
@@ -177,7 +177,7 @@ The user has the following preference:
 The Solution
 ============
 
-Building a query for that using `$or`_ is relatively easy since we know exactly what we want to search for.  From the API standpoint the language needs to append dictionary or SON objects to the `$or`_ field in order.  For the following example query we will turn on cursor.explain with **verbose** toggled on.
+Building a query to deal with explicitly defined ordering using `$or`_ is relatively easy since we know exactly what we want to search for.  From the API standpoint the language needs to append dictionary or SON objects to the `$or`_ field in order.  For the following example query we will turn on cursor.explain with **verbose** toggled on.
 
 Since we used `$or`_ we will have a **clauses** array that specifies the clauses and the query plans being used.
 
@@ -440,7 +440,7 @@ The latter query allows us to change **user.followers_count** to match any limit
 Multi-Index Support
 -------------------
 
-Each clause can rely on a different indexes or even force a table scan.  There's no method of applying a `cursor.hint()`_ to individual clauses so the magic is all in what fields you want to search on.  Make the server make an optimal assumption as to what index to use.
+Each clause can rely on a different indexes.  However, there's no method of applying a `cursor.hint()`_ to individual clauses.
 
 For instance if you wanted to use a `sparse index`_ in the first clause but wanted to use a `compound index`_ for the rest of them then you would want to specifically query around whatever fields are involved with the index you want to use.
 
@@ -476,9 +476,11 @@ In the example above the following indexes will be used in order:
 Sorting
 -------
 
-Using the `cursor.sort()`_ method on multi-clause query will inevitably fail if there are too many documents returned by the query.  Sorting in `MongoDB`_ relies a lot on the `index order`_ of the index being used for a query.  Sorting just isn't optimized for multi-clause queries full of multiple query plans.. nor should it be.  Using multiple clauses allows us to fetch different parts of the same document set in varying orders according to what we need.
+Using the `cursor.sort()`_ method on multi-clause query will inevitably fail if there are too many documents returned by the query.  For efficiency sake queries that use an index and sort on that indexes fields will be returned in `index order`_ eliminating post-sorting of a buffer of information.
 
-For the most part if each clause's query plan is using an index the documents retrieved for that clause will returned in the indexes `index order`_.  If no field specif index is being used for a clause then document ordering will be difficult to predict.
+`cursor.sort()`_ just isn't optimized for multi-clause queries full of multiple query plans and I don't believe it should be.  Using multiple clauses allows us to fetch different parts of the same document set in varying orders according to what we need.  Sorting the results after the documents are returned may go against your reasons for using `$or`_ in the first place.
+
+For the most part if each clause's query plan is using an index the documents retrieved for that clause will returned through an index scan in `index order`_.  If no field specific index is being used for a clause then document ordering will most likely be difficult to predict.
 
 Each clause's query plan attempts to find the most relevant index for the given query parameters and conditions. A clause is in essense it's own individualized `cursor.find()`_ command and gets the benefit of index `index order`_ when returning documents.
 
