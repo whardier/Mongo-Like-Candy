@@ -15,6 +15,8 @@ Cascading Multi-Clause Queries
 
 ..  _cursor.sort(): http://docs.mongodb.org/manual/reference/method/cursor.sort/
 
+..  _cursor.find(): http://docs.mongodb.org/manual/reference/method/cursor.find/
+
 ..  _cursor.hint(): http://docs.mongodb.org/manual/reference/method/cursor.hint/
 
 ..  _cursor.skip(): http://docs.mongodb.org/manual/reference/method/cursor.skip/
@@ -37,8 +39,6 @@ Cascading Multi-Clause Queries
 
 ..  _json: http://docs.mongodb.org/manual/reference/glossary/#term-json
 
-..  _hierarchical storage management: http://en.wikipedia.org/wiki/Hierarchical_storage_management
-
 ..  _sparse indexes: http://docs.mongodb.org/manual/core/index-sparse/
 
 ..  _sparse index: http://docs.mongodb.org/manual/core/index-sparse/
@@ -51,13 +51,7 @@ Cascading Multi-Clause Queries
 
 ..  _compound index: http://docs.mongodb.org/manual/core/index-compound
 
-..  _natural order: http://docs.mongodb.org/manual/reference/glossary/#term-natural-order
-
-..  _tag aware sharding: http://docs.mongodb.org/manual/core/tag-aware-sharding/
-
-..  _shard key: http://docs.mongodb.org/manual/core/sharding-shard-key/
-
-..  _geohash: http://en.wikipedia.org/wiki/Geohash
+..  _index order: http://docs.mongodb.org/manual/tutorial/sort-results-with-indexes/
 
 ..  _geohashes: http://en.wikipedia.org/wiki/Geohash
 
@@ -87,7 +81,7 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
         }
     });
 
-If there are **100** inventory items with a price of **1.99** that match the **qty** filter and we limit the overall query to **100** documents then the **price** clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how **cascading** is being put to use by returning documents in clause processed order which turns out to be an amazing optimization for developers interested in implementing priority based queries and where `hierarchical storage management`_ may be required.
+If there are **100** inventory items with a price of **1.99** that match the **qty** filter and we limit the overall query to **100** documents then the **price** clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how **cascading** is being put to use by returning documents in clause processed order.
 
 optimizations that benefit from `$or`_:
 
@@ -95,7 +89,7 @@ optimizations that benefit from `$or`_:
 
 * Index pyramids for hash based value queries and geospatial queries without utilizing `2d`_ or `2dsphere`_ indexes.
 
-* Pseudo-sorting very large volumes of data without requiring using `cursor.sort()`_.
+* Pseudo-sorting very large volumes of data without requiring `cursor.sort()`_.
 
 * Removing clauses from pagination results as the result set grows to support faster `cursor.skip()`_ operations.
     
@@ -386,8 +380,6 @@ That's a lot of documents and since we are working with potentially live `Twitte
 
 I have a lot of appreciation for **millis: 0**.
 
-This is right in line with how `hierarchical storage management`_ is done.  If this collection were sharded, which it probably should be, we have the opportunity to be clever and isolate low traffic index ranges to less expensive shard servers and use this solution to only hit those servers if the rest of the shards could not completely satisfy the query.  The gotcha is in the `shard key`_ and making sure that each clause defines it explicitely by making sure those fields are part of the query.  Doing so provides an alternative to `tag aware sharding`_ as well as a welcome complement to it.
-
 As previously stated, the user wants to include only documents posted by individuals that have more than **500** followers.  We can do this one of two ways depending on how flexible we want this query.
 
 ..  code-block :: javascript
@@ -484,7 +476,13 @@ In the example above the following indexes will be used in order:
 Sorting
 -------
 
-Using the `natural order`_ of an index seems to be the only obvious way to make each query sorted, therefore a very useful default `compound index`_ can help keep these tweets in order.  Literally.
+Using the `cursor.sort()`_ method on multi-clause query will inevitably fail if there are too many documents returned by the query.  Sorting in `MongoDB`_ relies a lot on the `index order`_ of the index being used for a query.  Sorting just isn't optimized for multi-clause queries full of multiple query plans.. nor should it be.  Using multiple clauses allows us to fetch different parts of the same document set in varying orders according to what we need.
+
+For the most part if each clause's query plan is using an index the documents retrieved for that clause will returned in the indexes `index order`_.  If no field specif index is being used for a clause then document ordering will be difficult to predict.
+
+Each clause's query plan attempts to find the most relevant index for the given query parameters and conditions. A clause is in essense it's own individualized `cursor.find()`_ command and gets the benefit of index `index order`_ when returning documents.
+
+Therefore, using the `index order`_ of an index seems to be the only obvious way to make each query sorted. This is exactly where a well tuned `compound index`_ can help keep these tweets in stay in an order we would prefer for a specific clause.
 
 ..  code-block :: javascript    
 
@@ -495,7 +493,7 @@ Using the `natural order`_ of an index seems to be the only obvious way to make 
         "user.screen_name": 1
     });
 
-Remove **place.country_1_place.full_name_1** or keep it and simply require that **user.screen_name** be `$gte`_ the lowest possible string value and the query plans will target this index for use. Any query plan that chooses this index will return documents in index ascending order starting with **place.country**, followed by **place.full_name**, and finally **user.screen_name**.
+In order to make sure a clause uses this index the conditions simply need to require that **user.screen_name** be `$gte`_ the lowest possible string value.  Doing so will is enough of a hint to the query planner to create a query plan that will target this index.  Any query plan that chooses this specific index will return documents in index ascending order starting with **place.country**, followed by **place.full_name**, and finally **user.screen_name**.
 
 Pagination `cursor.skip()`_ Optimization
 ----------------------------------------
