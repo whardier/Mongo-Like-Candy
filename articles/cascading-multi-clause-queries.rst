@@ -81,18 +81,8 @@ Here is a 2 clause query from the official `MongoDB documentation <http://docs.m
         }
     });
 
-If there are **100** inventory items with a price of **1.99** that match the **qty** filter and we limit the overall query to **100** documents then the **price** clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how **cascading** is being put to use by returning documents in clause processed order.
+Simply put... if there are **100** inventory items with a price of **1.99** that match the **qty** filter and we limit the overall query to **100** documents then the **price** clause will completely satisfy the query and any further query processing will be ignored.  This is a good example of how **cascading** is being put to use by returning documents in clause processed order.
 
-Optimizations that benefit from `$or`_ might include:
-
-* A series of index scans where more focused `sparse indexes`_ or `compound indexes`_ are queried before others.
-
-* Index pyramids for hash based value queries and geospatial queries without utilizing `2d`_ or `2dsphere`_ indexes.
-
-* Pseudo-sorting very large volumes of data without requiring `cursor.sort()`_.
-
-* Removing clauses from pagination results as the result set grows to support faster `cursor.skip()`_ operations.
-    
 Summary
 =======
 
@@ -473,8 +463,8 @@ In the example above the following indexes will be used in order:
 
 * **place.country_1_place.full_name_1**
 
-Sorting
--------
+Sorting Clause Results
+----------------------
 
 Using the `cursor.sort()`_ method on multi-clause query will inevitably fail if there are too many documents returned by the query.  For efficiency sake queries that use an index and sort on that indexes fields will be returned in `index order`_ eliminating post-sorting of a buffer of information.
 
@@ -496,34 +486,6 @@ Therefore, using the `index order`_ of an index seems to be the only obvious way
     });
 
 In order to make sure a clause uses this index the conditions simply need to require that **user.screen_name** be `$gte`_ the lowest possible string value.  Doing so will is enough of a hint to the query planner to create a query plan that will target this index.  Any query plan that chooses this specific index will return documents in index ascending order starting with **place.country**, followed by **place.full_name**, and finally **user.screen_name**.
-
-Pagination `cursor.skip()`_ Optimization
-----------------------------------------
-
-This method offers a somewhat unique opportunity to leave out the clause for **Los Angeles, CA** if the application notices there are no more **Los Angeles, CA** oriented documents in the result set.  With a little counting on the application side the `cursor.skip()`_ method can be reduced by how many documents existed in a clause that is going to be removed and the overall query benefits by not having to skip through clauses that are no longer valid.
-
-Index Pyramids
---------------
-
-Index pyramids are indexes designed to query for more specific data on a specific field and then further expand the boundaries through partial matching or reducing the query fields in a `compound index`_.
-
-For example lets look for all `Twitter`_ posts that are created by the **user.screen_name** "whardier" followed values starting with "whard" and eventually just "w":
-
-..  code-block :: javascript
-
-    db.tweets.find({
-        "$or": [{
-            "user.screen_name": { "whardier" },
-        }, {
-            "user.screen_name": { /^whard/ },
-        }, {
-            "user.screen_name": { /^w/ },
-        }],
-    })
-
-The **user.screen_name_1** index will be used 3 different times in this query.  Each clause will yield a broader set of information.
-
-This technique is very useful when combined with `Geohashes`_ and `Quadtrees`_ as regular string fields to offer fast spatially aware area and radius based queries.
 
 Conclusion
 ==========
