@@ -449,7 +449,6 @@ For instance if you wanted to use a `sparse index`_ in the first clause but want
         }, {       
             "place.country": "United States",
             "place.full_name": "Houston, TX",
-               
         }, {       
             "place.country": "United States"   
         }]
@@ -466,15 +465,9 @@ In the example above the following indexes will be used in order:
 Sorting Clause Results
 ----------------------
 
-Using the `cursor.sort()`_ method on multi-clause query will inevitably fail if there are too many documents returned by the query.  For efficiency sake queries that use an index and sort on that indexes fields will be returned in `index order`_ eliminating post-sorting of a buffer of information.
+You shouldn't use cursor.sort() with this technique since it would defeat the tiering of data each clause helps establish and you can easily run into a situation where you are sorting result sets larger than the _MongoDB sort buffer.  Instead consider the following: retrieve all of the results and sort them in your application code by whatever means necessary or plan on using compound indexes and encourage MongoDB to use the indexes ordering as the sorting method for each clauses result set.
 
-`cursor.sort()`_ just isn't optimized for multi-clause queries full of multiple query plans and I don't believe it should be.  Using multiple clauses allows us to fetch different parts of the same document set in varying orders according to what we need.  Sorting the results after the documents are returned may go against your reasons for using `$or`_ in the first place.
-
-For the most part if each clause's query plan is using an index the documents retrieved for that clause will returned through an index scan in `index order`_.  If no field specific index is being used for a clause then document ordering will most likely be difficult to predict.
-
-Each clause's query plan attempts to find the most relevant index for the given query parameters and conditions. A clause is in essense it's own individualized `cursor.find()`_ command and gets the benefit of index `index order`_ when returning documents.
-
-Therefore, using the `index order`_ of an index seems to be the only obvious way to make each query sorted. This is exactly where a well tuned `compound index`_ can help keep these tweets in stay in an order we would prefer for a specific clause.
+I personally prefer the latter option since it forces me to test the indexes and make sure they are optimal in the process.  Here's an example where I am creating another index that will ultimately have **user.screen_name** in sorted order after **place.full_name**.
 
 ..  code-block :: javascript    
 
@@ -485,7 +478,21 @@ Therefore, using the `index order`_ of an index seems to be the only obvious way
         "user.screen_name": 1
     });
 
-In order to make sure a clause uses this index the conditions simply need to require that **user.screen_name** be `$gte`_ the lowest possible string value.  Doing so will is enough of a hint to the query planner to create a query plan that will target this index.  Any query plan that chooses this specific index will return documents in index ascending order starting with **place.country**, followed by **place.full_name**, and finally **user.screen_name**.
+In order to make sure a clause uses this index since it shares it's first two keys with another index the query conditions simply need to require that **user.screen_name** be `$gte`_ the lowest possible string value.  This is a sneaky way of including the **user.screen_name** into the query planners decision making.
+
+..  code-block :: javascript
+
+    db.tweets.find({
+        "$or": [{
+            "place.country": "United States",
+            "place.full_name": "Houston, TX",
+            "user.screen_name": { $gte: '' },
+        }, {
+            "place.country": "United States"   
+        }]
+    }).explain(verbose = true);
+
+Now there is a higher if not totally positive chance that _MongoDB will choose the index **place.country_1_place.full_name_1_user.screen_name_1** rather than simply **place.country_1_place.full_name_1** and the results would be returned in the expected order.
 
 Conclusion
 ==========
